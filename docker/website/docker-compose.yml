@@ -4,6 +4,9 @@ services:
     build:
       context: ../..
       dockerfile: docker/website/Dockerfile
+    environment:
+      DATABASE_URL: postgresql://website:websitepass@db:5432/website
+      NEXTAUTH_URL: https://fultonsmovies.co.uk
     secrets:
       - NEXTAUTH_SECRET
     depends_on:
