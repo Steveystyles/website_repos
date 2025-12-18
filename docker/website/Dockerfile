@@ -37,6 +37,7 @@ RUN npx --no-install prisma generate
 # =========================
 # Build Next.js (production)
 # =========================
+ENV NEXTAUTH_SECRET=build-time-placeholder
 RUN npm run build
 
 # =========================

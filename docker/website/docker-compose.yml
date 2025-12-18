@@ -4,8 +4,8 @@ services:
     build:
       context: ../..
       dockerfile: docker/website/Dockerfile
-    environment:
-      NEXTAUTH_SECRET_FILE: /run/secrets/NEXTAUTH_SECRET
+    secrets:
+      - NEXTAUTH_SECRET
     depends_on:
       - db
     networks:
@@ -29,7 +29,8 @@ volumes:
   website_db:
 
 secrets:
-  - NEXTAUTH_SECRET
+  NEXTAUTH_SECRET:
+    file: ../secrets/NEXTAUTH_SECRET
   
 networks:
   web:
