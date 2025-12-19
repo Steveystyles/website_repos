@@ -31,10 +31,13 @@ jobs:
 
       - name: Prisma schema validation
         working-directory: website_data
+        env:
+          DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
         run: npx prisma validate
 
       - name: Type check & build
         working-directory: website_data
         env:
           NEXTAUTH_SECRET: ci-placeholder
+          DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
         run: npm run build
