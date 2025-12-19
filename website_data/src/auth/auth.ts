@@ -57,12 +57,12 @@ export const authOptions: NextAuthOptions = {
   },
 
   callbacks: {
-    async session({ session, user }) {
-      if (session.user) {
-        session.user.id = user.id
-        session.user.role = user.role // 👈 expose role to session
-      }
-      return session
+  async session({ session, user }) {
+    if (session.user && user) {
+      session.user.id = user.id as string
+      session.user.role = user.role as "USER" | "ADMIN"
+    }
+    return session
     },
   },
 }
