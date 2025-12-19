@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+set -e
+
+case "$1" in
+  dev)
+    ./scripts/dev.sh
+    ;;
+  prod)
+    ./scripts/prod.sh
+    ;;
+  status)
+    ./scripts/status.sh
+    ;;
+  *)
+    echo "Usage: ./mode {dev|prod|status}"
+    exit 1
+    ;;
+esac
