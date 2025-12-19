@@ -1,0 +1,38 @@
+services:
+  website-dev:
+    image: node:20-alpine
+    container_name: website-dev
+    working_dir: /app
+    command: npm run dev
+    ports:
+      - "3000:3000"
+    volumes:
+      - ../../website_data:/app
+      - /app/node_modules
+    environment:
+      NODE_ENV: development
+      NEXTAUTH_URL: http://192.168.0.15:3000
+      NEXTAUTH_SECRET: dev-secret
+      DATABASE_URL: postgresql://dev:devpass@db:5432/devdb
+    depends_on:
+      - db
+    networks:
+      - dev
+
+  db:
+    image: postgres:16
+    container_name: website-dev-db
+    environment:
+      POSTGRES_USER: dev
+      POSTGRES_PASSWORD: devpass
+      POSTGRES_DB: devdb
+    volumes:
+      - website_dev_db:/var/lib/postgresql/data
+    networks:
+      - dev
+
+networks:
+  dev:
+
+volumes:
+  website_dev_db:
