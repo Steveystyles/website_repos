@@ -3,12 +3,12 @@ services:
     image: node:20-alpine
     container_name: website-dev
     working_dir: /app
-    command: npm run dev
+    command: sh -c "npm install && npm run dev"
     ports:
       - "3000:3000"
     volumes:
       - ../../website_data:/app
-      - /app/node_modules
+      - website_dev_node_modules:/app/node_modules
     environment:
       NODE_ENV: development
       NEXTAUTH_URL: http://192.168.0.15:3000
@@ -36,3 +36,4 @@ networks:
 
 volumes:
   website_dev_db:
+  website_dev_node_modules:
