@@ -8,20 +8,14 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum Role {
-  USER
-  ADMIN
-}
-
 model User {
-  id            String   @id @default(cuid())
+  id            String    @id @default(cuid())
   name          String?
-  email         String?  @unique
+  email         String?   @unique
   emailVerified DateTime?
   image         String?
-
-  role          Role     @default(USER)   // ✅ ADD THIS
-
+  role          Role      @default(USER)
+  passwordHash  String?
   sessions      Session[]
 }
 
@@ -30,6 +24,10 @@ model Session {
   sessionToken String   @unique
   userId       String
   expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+enum Role {
+  USER
+  ADMIN
 }
