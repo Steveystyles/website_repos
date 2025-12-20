@@ -21,31 +21,36 @@ jobs:
           cache: npm
           cache-dependency-path: website_data/package-lock.json
 
+      - name: Cache Next.js build
+        uses: actions/cache@v4
+        with:
+          path: |
+            website_data/.next/cache
+          key: ${{ runner.os }}-nextjs-${{ hashFiles('website_data/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-nextjs-
+
       - name: Install dependencies
         working-directory: website_data
         run: npm ci
 
       - name: Generate Prisma client
         working-directory: website_data
-        env:
-          DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
         run: npx prisma generate
 
-      - name: Prisma schema validation
+      - name: Validate Prisma schema
         working-directory: website_data
-        env:
-          DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
         run: npx prisma validate
 
       - name: Run tests
         working-directory: website_data
         env:
-          DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
+          DATABASE_URL: postgresql://user:pass@localhost:5432/unused
         run: npm test
 
       - name: Type check & build
         working-directory: website_data
         env:
           NEXTAUTH_SECRET: ci-placeholder
-          DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
+          DATABASE_URL: postgresql://user:pass@localhost:5432/unused
         run: npm run build

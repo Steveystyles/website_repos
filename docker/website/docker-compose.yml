@@ -6,8 +6,6 @@ services:
       dockerfile: docker/website/Dockerfile
     env_file:
       - .env.prod
-    secrets:
-      - NEXTAUTH_SECRET
     depends_on:
       - db
     networks:
@@ -30,10 +28,6 @@ services:
 volumes:
   website_db:
 
-secrets:
-  NEXTAUTH_SECRET:
-    file: ../secrets/NEXTAUTH_SECRET
-  
 networks:
   web:
     external: true
