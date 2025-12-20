@@ -1,264 +1,341 @@
-# Website Architecture Overview
+# FultonsMovies – Home Server & Docker Setup
 
-This document describes the **current, working architecture** of the home‑server website project. It reflects the state where **DEV is stable**, authentication/roles are implemented, and Docker + Makefile orchestration is in place.
+This repository contains the **FultonsMovies** website and admin system, designed to run on a **self-hosted Linux home server** using **Docker Compose**.
 
----
+The system is intentionally:
+- Server-first
+- Docker-native
+- Low maintenance
+- Secure by default
+- Easy to operate remotely
 
-## 1. High‑Level Architecture
-
-The system is split into **DEV** and **PROD** modes, switched explicitly via Makefile commands.
-
-```
-Browser (LAN/WAN)
-        │
-        ▼
- ┌──────────────────┐
- │  NGINX (PROD)    │   ← Only in prod
- │  80 / 443        │
- └─────────┬────────┘
-           │
-           ▼
- ┌───────────────────────────────┐
- │      Next.js Application      │
- │  (DEV or PROD container)      │
- │                               │
- │  • Pages / App Router         │
- │  • API Routes                 │
- │  • NextAuth (JWT)             │
- │  • Role‑based auth            │
- └─────────┬─────────────────────┘
-           │ Prisma
-           ▼
- ┌───────────────────────────────┐
- │        PostgreSQL 16           │
- │   (DEV or PROD database)       │
- └───────────────────────────────┘
-```
+This README reflects the **current state of the project**, including the admin system, user management, and UI improvements completed in recent development.
 
 ---
 
-## 2. Containers
+## 1. Host Environment
 
-### DEV Environment
+Typical host setup:
 
-| Container | Image | Purpose | Ports |
-|---------|------|--------|------|
-| website-dev | node:20-alpine | Next.js dev server + API | 3000:3000 |
-| website-dev-db | postgres:16 | Development database | internal |
+- Linux (Ubuntu / Debian-based)
+- Docker & Docker Compose
+- Single-node deployment
+- Remote access via SSH / Tailscale
+- External storage mounted for media & backups
 
-- Started via: `make dev`
-- URL: `http://192.168.0.15:3000`
-- No nginx in DEV
-
-### PROD Environment
-
-| Container | Image | Purpose | Ports |
-|---------|------|--------|------|
-| nginx-proxy | nginx:alpine | Reverse proxy + SSL | 80 / 443 |
-| website-app | custom build | Next.js production | internal |
-| website-db | postgres:16 | Production database | internal |
-
-- Started via: `make prod`
-- Domain based (HTTPS)
-
----
-
-## 3. Authentication & Authorization
-
-### Authentication
-
-- NextAuth with **Credentials provider**
-- Passwords stored as **bcrypt hashes**
-- JWT session strategy
-
-### User Model
+Example host layout:
 
 ```
-User
-- id (cuid)
-- email (unique)
-- name
-- role (USER | ADMIN)
-- passwordHash
-```
-
-### Authorization Rules
-
-| Area | Rule |
-|----|----|
-| /login | Public |
-| / | Logged‑in users |
-| /admin | ADMIN only |
-| /api/admin/* | ADMIN only |
-
-Non‑admin users:
-- Redirected to `/` when accessing protected pages
-- Receive 403 from admin API routes
-
----
-
-## 4. Request Flows
-
-### Login
-
-```
-User → /login
-     → Credentials provider
-     → Prisma (verify user)
-     → JWT issued
-```
-
-### Admin Page
-
-```
-GET /admin
- → requireAdmin()
-    ├─ no session → /login
-    ├─ role USER → /
-    └─ role ADMIN → render page
-```
-
-### Admin API
-
-```
-POST /api/admin/users
- → requireAdminApi()
-    ├─ no session → 401
-    ├─ USER → 403
-    └─ ADMIN → DB action
-```
-
----
-
-## 5. Repository Structure
-
-```
-website/
+/
+├── repos/
+│   ├── website/          # this repository
+│   └── monitoring/       # future monitoring stack
 ├── docker/
-│   ├── website/        # prod compose
-│   └── nginx/          # reverse proxy
-├── scripts/
-│   ├── dev.sh
-│   ├── prod.sh
-│   ├── stop.sh
-│   └── _common.sh
-├── website_data/
-│   ├── src/
-│   │   ├── app/
-│   │   │   ├── admin/
-│   │   │   ├── api/
-│   │   │   └── login/
-│   │   ├── auth/
-│   │   ├── lib/
-│   │   └── types/
-│   ├── prisma/
-│   │   ├── schema.prisma
-│   │   └── migrations/
-│   └── package.json
-├── Makefile
-└── mode
+│   ├── nginx/
+│   └── website/
+├── disk1/
+├── disk2/
+├── disk3/
+└── disk4/
+```
+
+The **internal SSD** is used for:
+- Application code
+- Docker containers
+- PostgreSQL data
+- Monitoring
+
+External disks are reserved for **media storage and backups**.
+
+---
+
+## 2. Docker Architecture
+
+```
+Internet
+   │
+   ▼
+NGINX (Reverse Proxy)
+   │
+   ├── HTTPS (Certbot)
+   └── HTTP → HTTPS redirect
+   │
+   ▼
+Next.js App (App Router)
+   │
+   ▼
+PostgreSQL 16 (Prisma ORM)
+```
+
+Each service runs in its **own container**, connected via Docker networks.
+
+Only **NGINX exposes ports 80/443** to the host.
+
+---
+
+## 3. Docker Compose Layout
+
+The project is split into **separate Docker Compose stacks** for clarity and safety.
+
+### Website stack
+
+```
+docker/website/
+├── docker-compose.yml
+├── Dockerfile
+└── .env
+```
+
+Services:
+- `website-app` → Next.js application
+- `website-db` → PostgreSQL 16
+
+### NGINX stack
+
+```
+docker/nginx/
+├── docker-compose.yml
+├── nginx.conf
+└── certbot/
+```
+
+Services:
+- `nginx-proxy`
+- `certbot`
+
+This separation allows:
+- Independent restarts
+- Cleaner networking
+- Easier SSL renewal
+
+---
+
+## 4. Networking
+
+Docker networks are explicitly defined:
+
+- `web` → shared between NGINX and website
+- `website_default` → internal app ↔ database traffic
+
+The Next.js container is **never directly exposed to the internet**.
+
+---
+
+## 5. Authentication & Roles
+
+Authentication uses **NextAuth (Credentials provider)**.
+
+Roles:
+- `USER`
+- `ADMIN`
+
+Authorization is enforced **server-side only**.
+
+Guards:
+- `requireAdmin()` → admin pages & Server Actions
+- `requireAdminApi()` → API routes (if used)
+
+Sessions persist until expiry or logout.
+
+---
+
+## 6. Admin Panel Overview
+
+Admin routes:
+
+```
+/admin
+/admin/users
+/admin/system
+/admin/maintenance
+```
+
+All admin routes are protected at the **layout level**.
+
+The admin panel is:
+- Server-rendered
+- Server-action driven
+- Free of client-side state
+- Safe to operate remotely
+
+---
+
+## 7. Admin User Management (`/admin/users`)
+
+The user management page is fully implemented using **Server Actions**.
+
+### Capabilities
+
+- View all users
+- Add new users (email, name, role, password)
+- Promote / demote users
+- Reset user passwords
+- Delete users (with confirmation)
+
+### Safety Rules
+
+- Admin **cannot delete or demote themselves**
+- **Last remaining ADMIN cannot be deleted**
+- Delete requires explicit confirmation checkbox
+- All checks enforced server-side
+
+---
+
+## 8. Admin UI Design
+
+### Design Principles
+
+- No client-side JavaScript for admin logic
+- No REST APIs for admin mutations
+- Native HTML controls
+- Predictable behaviour
+
+### Actions Dropdown
+
+Per-user actions are grouped under a native dropdown:
+
+```html
+<details>
+  <summary>Actions ▾</summary>
+  <!-- Promote / Reset / Delete -->
+</details>
+```
+
+This provides:
+- Clean table layout
+- Reduced visual clutter
+- Accessible keyboard navigation
+- No hydration issues
+
+---
+
+## 9. Admin System Page (`/admin/system`)
+
+Read-only operational overview for administrators.
+
+Displays:
+- Environment (DEV / PROD)
+- Node.js version
+- Database connectivity status
+- Current admin session info
+
+This page acts as a lightweight **system health dashboard**.
+
+---
+
+## 10. Database
+
+- PostgreSQL 16
+- Prisma ORM
+- Data stored on internal SSD
+
+Relevant schema:
+
+```prisma
+model User {
+  id           String  @id @default(cuid())
+  email        String  @unique
+  name         String?
+  role         Role    @default(USER)
+  passwordHash String?
+}
+
+enum Role {
+  USER
+  ADMIN
+}
 ```
 
 ---
 
-## 6. Makefile Workflow
+## 11. Secrets & Environment Variables
 
-| Command | Action |
-|------|------|
-| make dev | Start DEV containers |
-| make prod | Start PROD stack |
-| make stop | Stop all containers |
-| make restart-dev | Clean restart DEV |
-| make status | Show running containers |
+Secrets are **never committed**.
 
-Hard‑blocked so DEV and PROD cannot run simultaneously.
+Common variables:
+- `DATABASE_URL`
+- `NEXTAUTH_SECRET`
+- `NEXTAUTH_URL`
 
----
-
-## 7. Design Decisions
-
-### Why JWT (not DB sessions)
-- Stateless
-- Simple scaling
-- Works cleanly in Docker
-
-### Why DEV uses node:alpine
-- Fast startup
-- Matches Prisma musl target
-
-### Why strict role enforcement
-- Prevents privilege escalation
-- API & UI both protected
+Provided via:
+- `.env` files (local)
+- Docker secrets (production)
 
 ---
 
-## 8. Known Limitations (acceptable)
+## 12. SSL & HTTPS
 
-- No password reset UI yet
-- No audit log
-- Single‑node deployment
+- SSL handled by Certbot container
+- Certificates stored on host volume
+- Automated renewal via cron
+- NGINX reloads after renewal
 
----
-
-## 9. Next Planned Features
-
-- Admin user management UI
-- Promote / demote roles
-- Password reset flow
-- Monitoring stack
+Production traffic is **HTTPS-only**.
 
 ---
 
-## 10. Data Persistence & Volumes
+## 13. Deployment Workflow (Home Server)
 
-The system is designed so containers are disposable, while data persists.
+Typical update process:
 
-### PostgreSQL
-- DEV and PROD databases run in separate containers
-- Data is stored in Docker volumes
-- Rebuilding or redeploying containers does NOT remove data
+```bash
+ssh homeserver
+cd ~/repos/website
+git pull
+docker compose -f docker/website/docker-compose.yml build
+docker compose -f docker/website/docker-compose.yml up -d
+docker compose -f docker/nginx/docker-compose.yml up -d
+```
 
-### Application Code
-- DEV mounts the source code directly for hot reload
-- PROD uses a built, immutable image
+This manual flow is intentional for home-server control.
 
-### Secrets
-- Secrets (e.g. NEXTAUTH_SECRET) are provided via Docker secrets
-- Secrets are never committed to the repository
+---
 
-| Data | Storage | Persistent |
-|----|----|----|
-| Dev DB | Docker volume | ✅ |
-| Prod DB | Docker volume | ✅ |
-| Prisma migrations | Git | ✅ |
-| JWT secret | Docker secret | ✅ |
-| SSL certificates | nginx volume | ✅ |
+## 14. Monitoring & Maintenance
 
-## 11. Environment Variables
+Current:
+- `/admin/system` health overview
 
-| Variable | DEV | PROD | Description |
-|-------|-----|------|------------|
-| NEXTAUTH_URL | http://192.168.0.15:3000 | https://domain | Public site URL |
-| NEXTAUTH_SECRET | Docker secret | Docker secret | JWT encryption |
-| DATABASE_URL | Internal | Internal | Prisma connection |
-| NODE_ENV | development | production | Runtime mode |
+Planned:
+- Dedicated monitoring stack
+- Disk usage alerts
+- Backup automation
 
-## 12. Known Failure Modes
+---
 
-- Changing NEXTAUTH_SECRET will invalidate all active sessions
-- Running DEV while PROD nginx is active will cause port conflicts
-- Prisma client and database schema must stay in sync
-- Deleting database volumes will permanently remove user data
+## 15. Design Philosophy
 
-## 13. Administrative Responsibilities
+This system is designed to:
+- Run unattended for long periods
+- Be easy to recover
+- Avoid unnecessary complexity
+- Remain understandable months later
 
-Admin users are responsible for:
+It deliberately avoids:
+- Kubernetes
+- Heavy client frameworks
+- Over-engineered CI/CD
 
-- Managing user accounts and roles
-- Monitoring system health
-- Performing maintenance tasks
-- Managing application configuration
+---
 
-These responsibilities are enforced through role-based access control.
+## 16. Planned Enhancements
 
+- Audit logging for admin actions
+- Forced password reset on next login
+- Soft-delete users
+- Automated database backups
+- Media server integration
 
+---
+
+## 17. Summary
+
+This project represents a **production-grade home server deployment**:
+
+- Dockerised
+- Secure by default
+- Admin-safe
+- Low maintenance
+- Easy to extend
+
+Designed for **real-world self-hosting**, not cloud-only environments.
