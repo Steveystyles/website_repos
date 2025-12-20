@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from "next/server"
+import type { RouteHandler } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { requireAdmin } from "@/lib/requireAdmin"
 
-export async function PUT(
+export const PUT: RouteHandler = async (
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
-) {
+) => {
   await requireAdmin()
 
   const { id } = await params
@@ -19,10 +20,10 @@ export async function PUT(
   return NextResponse.json({ success: true })
 }
 
-export async function DELETE(
+export const DELETE: RouteHandler = async (
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
-) {
+) => {
   await requireAdmin()
 
   const { id } = await params
