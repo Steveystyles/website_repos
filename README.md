@@ -209,6 +209,56 @@ Hard‑blocked so DEV and PROD cannot run simultaneously.
 
 ---
 
-**This document represents the baseline architecture.**
-Changes should be reflected here when core structure evolves.
+## 10. Data Persistence & Volumes
+
+The system is designed so containers are disposable, while data persists.
+
+### PostgreSQL
+- DEV and PROD databases run in separate containers
+- Data is stored in Docker volumes
+- Rebuilding or redeploying containers does NOT remove data
+
+### Application Code
+- DEV mounts the source code directly for hot reload
+- PROD uses a built, immutable image
+
+### Secrets
+- Secrets (e.g. NEXTAUTH_SECRET) are provided via Docker secrets
+- Secrets are never committed to the repository
+
+| Data | Storage | Persistent |
+|----|----|----|
+| Dev DB | Docker volume | ✅ |
+| Prod DB | Docker volume | ✅ |
+| Prisma migrations | Git | ✅ |
+| JWT secret | Docker secret | ✅ |
+| SSL certificates | nginx volume | ✅ |
+
+## 11. Environment Variables
+
+| Variable | DEV | PROD | Description |
+|-------|-----|------|------------|
+| NEXTAUTH_URL | http://192.168.0.15:3000 | https://domain | Public site URL |
+| NEXTAUTH_SECRET | Docker secret | Docker secret | JWT encryption |
+| DATABASE_URL | Internal | Internal | Prisma connection |
+| NODE_ENV | development | production | Runtime mode |
+
+## 12. Known Failure Modes
+
+- Changing NEXTAUTH_SECRET will invalidate all active sessions
+- Running DEV while PROD nginx is active will cause port conflicts
+- Prisma client and database schema must stay in sync
+- Deleting database volumes will permanently remove user data
+
+## 13. Administrative Responsibilities
+
+Admin users are responsible for:
+
+- Managing user accounts and roles
+- Monitoring system health
+- Performing maintenance tasks
+- Managing application configuration
+
+These responsibilities are enforced through role-based access control.
+
 
