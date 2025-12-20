@@ -9,11 +9,8 @@ services:
     volumes:
       - ../../website_data:/app
       - website_dev_node_modules:/app/node_modules
-    environment:
-      NODE_ENV: development
-      NEXTAUTH_URL: http://192.168.0.15:3000
-      NEXTAUTH_SECRET: dev-secret
-      DATABASE_URL: postgresql://dev:devpass@db:5432/devdb
+    env_file:
+      - .env.dev
     depends_on:
       - db
     networks:

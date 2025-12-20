@@ -8,11 +8,14 @@ case "$1" in
   prod)
     ./scripts/prod.sh
     ;;
+  stop)
+    ./scripts/stop.sh
+    ;;
   status)
     ./scripts/status.sh
     ;;
   *)
-    echo "Usage: ./mode {dev|prod|status}"
+    echo "Usage: ./mode {dev|prod|stop|status}"
     exit 1
     ;;
 esac
