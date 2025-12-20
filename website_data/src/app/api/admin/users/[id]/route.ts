@@ -1,10 +1,13 @@
 import { prisma } from "@/lib/prisma";
 import { requireAdminApi } from "@/lib/requireAdminApi";
+import { NextRequest } from "next/server";
 
 export async function PATCH(
-  req: Request,
-  { params }: { params: { id: string } }
+  req: NextRequest,
+  context: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await context.params;
+
   const session = await requireAdminApi();
   if (session instanceof Response) return session;
 
@@ -15,13 +18,13 @@ export async function PATCH(
     return new Response("Invalid role", { status: 400 });
   }
 
-  // Prevent admin from demoting themselves
-  if (params.id === session.user.id) {
+  // Prevent self-demotion
+  if (id === session.user.id) {
     return new Response("Cannot change your own role", { status: 400 });
   }
 
   const user = await prisma.user.update({
-    where: { id: params.id },
+    where: { id },
     data: { role },
     select: {
       id: true,
