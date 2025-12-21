@@ -1,6 +1,6 @@
 "use client"
 
-import { signIn } from "next-auth/react"
+import { getSession, signIn } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 
@@ -8,6 +8,10 @@ export default function LoginPage() {
   const router = useRouter()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const callbackUrl =
+    typeof window === "undefined"
+      ? "/"
+      : new URL("/", window.location.origin).toString()
 
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-slate-950 px-4 py-16 text-white">
@@ -33,7 +37,7 @@ export default function LoginPage() {
               const result = await signIn("credentials", {
                 email,
                 password,
-                callbackUrl: "/",
+                callbackUrl,
                 redirect: false,
               })
               if (result?.error) {
@@ -42,9 +46,12 @@ export default function LoginPage() {
                 )
                 return
               }
-              if (result?.url) {
-                router.push(result.url)
-              }
+              const session = await getSession()
+              const destination =
+                session?.user?.role === "ADMIN"
+                  ? "/admin"
+                  : result?.url ?? "/"
+              router.push(destination)
             }}
           >
             <label className="block space-y-2 text-sm font-medium text-slate-200">

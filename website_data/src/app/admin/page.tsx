@@ -1,5 +1,12 @@
 import { requireAdmin } from "@/lib/requireAdmin";
 import { prisma } from "@/lib/prisma";
+import {
+  AdminCard,
+  AdminInfoCard,
+  AdminPageHeader,
+  AdminPageShell,
+  AdminSectionHeader,
+} from "@/components/admin/AdminComponents";
 
 export default async function AdminDashboard() {
   const session = await requireAdmin();
@@ -20,65 +27,12 @@ export default async function AdminDashboard() {
     dbError = err instanceof Error ? err.message : "Unknown error";
   }
 
-  const cardStyle = {
-    background: "#ffffff",
-    border: "1px solid #e2e8f0",
-    borderRadius: 16,
-    padding: 20,
-    boxShadow: "0 10px 30px -20px rgba(15, 23, 42, 0.35)",
-  } as const;
-
-  const systemCardStyle = {
-    ...cardStyle,
-    padding: 0,
-    overflow: "hidden",
-  } as const;
-
-  const systemCardHeaderStyle = {
-    padding: "12px 16px",
-    background: "#f8fafc",
-    borderBottom: "1px solid #e2e8f0",
-    textTransform: "uppercase",
-    letterSpacing: "0.08em",
-    fontSize: 12,
-    fontWeight: 700,
-    color: "#475569",
-  } as const;
-
-  const systemCardBodyStyle = {
-    padding: 16,
-  } as const;
-
   return (
-    <div
-      style={{
-        maxWidth: 1100,
-        margin: "0 auto",
-        padding: "32px 24px 64px",
-        color: "#0f172a",
-      }}
-    >
-      <header style={{ marginBottom: 24 }}>
-        <p
-          style={{
-            textTransform: "uppercase",
-            letterSpacing: "0.12em",
-            fontSize: 12,
-            fontWeight: 600,
-            color: "#64748b",
-            marginBottom: 8,
-          }}
-        >
-          Admin Console
-        </p>
-        <h1 style={{ fontSize: 28, fontWeight: 700, marginBottom: 6 }}>
-          Admin Dashboard
-        </h1>
-        <p style={{ color: "#64748b", maxWidth: 520 }}>
-          Monitor system health, manage users, and keep operations on track from a
-          single workspace.
-        </p>
-      </header>
+    <AdminPageShell>
+      <AdminPageHeader
+        title="Admin Dashboard"
+        description="Monitor system health, manage users, and keep operations on track from a single workspace."
+      />
 
       <section
         style={{
@@ -88,7 +42,7 @@ export default async function AdminDashboard() {
           marginBottom: 28,
         }}
       >
-        <div style={cardStyle}>
+        <AdminCard>
           <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 8 }}>
             User Management
           </h3>
@@ -98,9 +52,9 @@ export default async function AdminDashboard() {
           <a href="/admin/users" style={{ color: "#2563eb", fontWeight: 600 }}>
             Open users →
           </a>
-        </div>
+        </AdminCard>
 
-        <div style={cardStyle}>
+        <AdminCard>
           <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 8 }}>
             Maintenance
           </h3>
@@ -113,19 +67,15 @@ export default async function AdminDashboard() {
           >
             Manage maintenance →
           </a>
-        </div>
+        </AdminCard>
       </section>
 
       <section id="system-status" style={{ marginTop: 8 }}>
-        <div style={{ marginBottom: 16 }}>
-          <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 4 }}>
-            System Status
-          </h2>
-          <p style={{ color: "#64748b", maxWidth: 520 }}>
-            Real-time environment and infrastructure snapshots for the admin
-            team.
-          </p>
-        </div>
+        <AdminSectionHeader
+          title="System Status"
+          description="Real-time environment and infrastructure snapshots for the admin team."
+          size="lg"
+        />
 
         <div
           style={{
@@ -134,78 +84,66 @@ export default async function AdminDashboard() {
             gap: 16,
           }}
         >
-          <div style={systemCardStyle}>
-            <div style={systemCardHeaderStyle}>Environment</div>
-            <div style={systemCardBodyStyle}>
-              <ul style={{ display: "grid", gap: 8, color: "#0f172a" }}>
-                <li>
-                  <strong>Mode:</strong>{" "}
-                  <span
-                    style={{
-                      color: environment === "PROD" ? "#991b1b" : "#075985",
-                      fontWeight: 600,
-                    }}
-                  >
-                    {environment}
-                  </span>
-                </li>
-                <li>
-                  <strong>Node.js:</strong> {nodeVersion}
-                </li>
-              </ul>
-            </div>
-          </div>
+          <AdminInfoCard title="Environment">
+            <ul style={{ display: "grid", gap: 8, color: "#0f172a" }}>
+              <li>
+                <strong>Mode:</strong>{" "}
+                <span
+                  style={{
+                    color: environment === "PROD" ? "#991b1b" : "#075985",
+                    fontWeight: 600,
+                  }}
+                >
+                  {environment}
+                </span>
+              </li>
+              <li>
+                <strong>Node.js:</strong> {nodeVersion}
+              </li>
+            </ul>
+          </AdminInfoCard>
 
-          <div style={systemCardStyle}>
-            <div style={systemCardHeaderStyle}>Application</div>
-            <div style={systemCardBodyStyle}>
-              <ul style={{ display: "grid", gap: 8 }}>
-                <li>
-                  <strong>Name:</strong> {appName}
-                </li>
-              </ul>
-            </div>
-          </div>
+          <AdminInfoCard title="Application">
+            <ul style={{ display: "grid", gap: 8 }}>
+              <li>
+                <strong>Name:</strong> {appName}
+              </li>
+            </ul>
+          </AdminInfoCard>
 
-          <div style={systemCardStyle}>
-            <div style={systemCardHeaderStyle}>Database</div>
-            <div style={systemCardBodyStyle}>
-              <ul style={{ display: "grid", gap: 8 }}>
-                <li>
-                  <strong>Status:</strong>{" "}
-                  <span
-                    style={{
-                      color: dbStatus === "OK" ? "#065f46" : "#991b1b",
-                      fontWeight: 600,
-                    }}
-                  >
-                    {dbStatus}
-                  </span>
+          <AdminInfoCard title="Database">
+            <ul style={{ display: "grid", gap: 8 }}>
+              <li>
+                <strong>Status:</strong>{" "}
+                <span
+                  style={{
+                    color: dbStatus === "OK" ? "#065f46" : "#991b1b",
+                    fontWeight: 600,
+                  }}
+                >
+                  {dbStatus}
+                </span>
+              </li>
+              {dbError && (
+                <li style={{ color: "#991b1b" }}>
+                  <strong>Error:</strong> {dbError}
                 </li>
-                {dbError && (
-                  <li style={{ color: "#991b1b" }}>
-                    <strong>Error:</strong> {dbError}
-                  </li>
-                )}
-              </ul>
-            </div>
-          </div>
+              )}
+            </ul>
+          </AdminInfoCard>
 
-          <div style={systemCardStyle}>
-            <div style={systemCardHeaderStyle}>Current Session</div>
-            <div style={systemCardBodyStyle}>
-              <ul style={{ display: "grid", gap: 8 }}>
-                <li>
-                  <strong>User:</strong> {session.user.email}
-                </li>
-                <li>
-                  <strong>Role:</strong> {session.user.role}
-                </li>
-              </ul>
-            </div>
-          </div>
+          <AdminInfoCard title="Current Session">
+            <ul style={{ display: "grid", gap: 8 }}>
+              <li>
+                <strong>User:</strong> {session.user.email}
+              </li>
+              <li>
+                <strong>Role:</strong> {session.user.role}
+              </li>
+            </ul>
+          </AdminInfoCard>
         </div>
       </section>
-    </div>
+    </AdminPageShell>
   );
 }

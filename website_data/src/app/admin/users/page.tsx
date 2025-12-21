@@ -4,6 +4,13 @@ import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/requireAdmin";
 import { revalidatePath } from "next/cache";
 import bcrypt from "bcryptjs";
+import {
+  AdminCard,
+  AdminPageHeader,
+  AdminPageShell,
+  AdminSectionHeader,
+  AdminStatCard,
+} from "@/components/admin/AdminComponents";
 
 
 export async function createUser(formData: FormData) {
@@ -137,35 +144,11 @@ export default async function AdminUsersPage() {
   const standardUsers = totalUsers - adminUsers;
 
   return (
-    <div
-      style={{
-        maxWidth: 1100,
-        margin: "0 auto",
-        padding: "32px 24px 64px",
-        color: "#0f172a",
-      }}
-    >
-      <header style={{ marginBottom: 24 }}>
-        <p
-          style={{
-            textTransform: "uppercase",
-            letterSpacing: "0.12em",
-            fontSize: 12,
-            fontWeight: 600,
-            color: "#64748b",
-            marginBottom: 8,
-          }}
-        >
-          Admin Console
-        </p>
-        <h1 style={{ fontSize: 28, fontWeight: 700, marginBottom: 6 }}>
-          User Management
-        </h1>
-        <p style={{ color: "#64748b", maxWidth: 520 }}>
-          Create accounts, control admin access, and reset credentials. Changes apply
-          instantly across the platform.
-        </p>
-      </header>
+    <AdminPageShell>
+      <AdminPageHeader
+        title="User Management"
+        description="Create accounts, control admin access, and reset credentials. Changes apply instantly across the platform."
+      />
 
       <section
         style={{
@@ -180,41 +163,15 @@ export default async function AdminUsersPage() {
           { label: "Admins", value: adminUsers },
           { label: "Standard users", value: standardUsers },
         ].map((stat) => (
-          <div
-            key={stat.label}
-            style={{
-              background: "#f8fafc",
-              border: "1px solid #e2e8f0",
-              borderRadius: 12,
-              padding: 16,
-            }}
-          >
-            <div style={{ fontSize: 12, color: "#64748b", marginBottom: 6 }}>
-              {stat.label}
-            </div>
-            <div style={{ fontSize: 20, fontWeight: 700 }}>{stat.value}</div>
-          </div>
+          <AdminStatCard key={stat.label} label={stat.label} value={stat.value} />
         ))}
       </section>
 
-      <section
-        style={{
-          background: "#ffffff",
-          border: "1px solid #e2e8f0",
-          borderRadius: 16,
-          padding: 20,
-          marginBottom: 24,
-          boxShadow: "0 10px 30px -20px rgba(15, 23, 42, 0.35)",
-        }}
-      >
-        <div style={{ marginBottom: 16 }}>
-          <h2 style={{ fontSize: 18, fontWeight: 600, marginBottom: 4 }}>
-            Add a new user
-          </h2>
-          <p style={{ fontSize: 13, color: "#64748b" }}>
-            Invite someone by creating their account and assigning a role.
-          </p>
-        </div>
+      <AdminCard style={{ marginBottom: 24 }}>
+        <AdminSectionHeader
+          title="Add a new user"
+          description="Invite someone by creating their account and assigning a role."
+        />
 
         <form
           action={createUser}
@@ -284,17 +241,9 @@ export default async function AdminUsersPage() {
             Create user
           </button>
         </form>
-      </section>
+      </AdminCard>
 
-      <section
-        style={{
-          background: "#ffffff",
-          border: "1px solid #e2e8f0",
-          borderRadius: 16,
-          padding: 20,
-          boxShadow: "0 10px 30px -20px rgba(15, 23, 42, 0.35)",
-        }}
-      >
+      <AdminCard>
         <div
           style={{
             display: "flex",
@@ -303,14 +252,11 @@ export default async function AdminUsersPage() {
             marginBottom: 16,
           }}
         >
-          <div>
-            <h2 style={{ fontSize: 18, fontWeight: 600, marginBottom: 4 }}>
-              Users
-            </h2>
-            <p style={{ fontSize: 13, color: "#64748b" }}>
-              View and manage account access.
-            </p>
-          </div>
+          <AdminSectionHeader
+            title="Users"
+            description="View and manage account access."
+            marginBottom={0}
+          />
         </div>
 
         <table
@@ -508,7 +454,7 @@ export default async function AdminUsersPage() {
             })}
           </tbody>
         </table>
-      </section>
-    </div>
+      </AdminCard>
+    </AdminPageShell>
   );
 }
