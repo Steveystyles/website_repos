@@ -24,78 +24,146 @@ export default async function AdminSystemPage() {
   }
 
   return (
-    <>
-      <h1>System Status</h1>
-      <p style={{ color: "#6b7280", marginBottom: 16 }}>
-        Read-only system and environment information.
-      </p>
+    <div
+      style={{
+        maxWidth: 1100,
+        margin: "0 auto",
+        padding: "32px 24px 64px",
+        color: "#0f172a",
+      }}
+    >
+      <header style={{ marginBottom: 24 }}>
+        <p
+          style={{
+            textTransform: "uppercase",
+            letterSpacing: "0.12em",
+            fontSize: 12,
+            fontWeight: 600,
+            color: "#64748b",
+            marginBottom: 8,
+          }}
+        >
+          Admin Console
+        </p>
+        <h1 style={{ fontSize: 28, fontWeight: 700, marginBottom: 6 }}>
+          System Status
+        </h1>
+        <p style={{ color: "#64748b", maxWidth: 520 }}>
+          Read-only system and environment information for the admin team.
+        </p>
+      </header>
 
-      {/* Environment */}
-      <section style={{ marginBottom: 24 }}>
-        <h3>Environment</h3>
-        <ul>
-          <li>
-            <strong>Mode:</strong>{" "}
-            <span
-              style={{
-                color: environment === "PROD" ? "#991b1b" : "#075985",
-                fontWeight: 600,
-              }}
-            >
-              {environment}
-            </span>
-          </li>
-          <li>
-            <strong>Node.js:</strong> {nodeVersion}
-          </li>
-        </ul>
-      </section>
-
-      {/* Application */}
-      <section style={{ marginBottom: 24 }}>
-        <h3>Application</h3>
-        <ul>
-          <li>
-            <strong>Name:</strong> {appName}
-          </li>
-        </ul>
-      </section>
-
-      {/* Database */}
-      <section style={{ marginBottom: 24 }}>
-        <h3>Database</h3>
-        <ul>
-          <li>
-            <strong>Status:</strong>{" "}
-            <span
-              style={{
-                color: dbStatus === "OK" ? "#065f46" : "#991b1b",
-                fontWeight: 600,
-              }}
-            >
-              {dbStatus}
-            </span>
-          </li>
-          {dbError && (
-            <li style={{ color: "#991b1b" }}>
-              <strong>Error:</strong> {dbError}
+      <section
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+          gap: 16,
+          marginBottom: 24,
+        }}
+      >
+        <div
+          style={{
+            background: "#ffffff",
+            border: "1px solid #e2e8f0",
+            borderRadius: 16,
+            padding: 20,
+            boxShadow: "0 10px 30px -20px rgba(15, 23, 42, 0.35)",
+          }}
+        >
+          <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 12 }}>
+            Environment
+          </h3>
+          <ul style={{ display: "grid", gap: 8, color: "#0f172a" }}>
+            <li>
+              <strong>Mode:</strong>{" "}
+              <span
+                style={{
+                  color: environment === "PROD" ? "#991b1b" : "#075985",
+                  fontWeight: 600,
+                }}
+              >
+                {environment}
+              </span>
             </li>
-          )}
-        </ul>
-      </section>
+            <li>
+              <strong>Node.js:</strong> {nodeVersion}
+            </li>
+          </ul>
+        </div>
 
-      {/* Session */}
-      <section>
-        <h3>Current Session</h3>
-        <ul>
-          <li>
-            <strong>User:</strong> {session.user.email}
-          </li>
-          <li>
-            <strong>Role:</strong> {session.user.role}
-          </li>
-        </ul>
+        <div
+          style={{
+            background: "#ffffff",
+            border: "1px solid #e2e8f0",
+            borderRadius: 16,
+            padding: 20,
+            boxShadow: "0 10px 30px -20px rgba(15, 23, 42, 0.35)",
+          }}
+        >
+          <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 12 }}>
+            Application
+          </h3>
+          <ul style={{ display: "grid", gap: 8 }}>
+            <li>
+              <strong>Name:</strong> {appName}
+            </li>
+          </ul>
+        </div>
+
+        <div
+          style={{
+            background: "#ffffff",
+            border: "1px solid #e2e8f0",
+            borderRadius: 16,
+            padding: 20,
+            boxShadow: "0 10px 30px -20px rgba(15, 23, 42, 0.35)",
+          }}
+        >
+          <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 12 }}>
+            Database
+          </h3>
+          <ul style={{ display: "grid", gap: 8 }}>
+            <li>
+              <strong>Status:</strong>{" "}
+              <span
+                style={{
+                  color: dbStatus === "OK" ? "#065f46" : "#991b1b",
+                  fontWeight: 600,
+                }}
+              >
+                {dbStatus}
+              </span>
+            </li>
+            {dbError && (
+              <li style={{ color: "#991b1b" }}>
+                <strong>Error:</strong> {dbError}
+              </li>
+            )}
+          </ul>
+        </div>
+
+        <div
+          style={{
+            background: "#ffffff",
+            border: "1px solid #e2e8f0",
+            borderRadius: 16,
+            padding: 20,
+            boxShadow: "0 10px 30px -20px rgba(15, 23, 42, 0.35)",
+          }}
+        >
+          <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 12 }}>
+            Current Session
+          </h3>
+          <ul style={{ display: "grid", gap: 8 }}>
+            <li>
+              <strong>User:</strong> {session.user.email}
+            </li>
+            <li>
+              <strong>Role:</strong> {session.user.role}
+            </li>
+          </ul>
+        </div>
       </section>
-    </>
+    </div>
   );
 }
