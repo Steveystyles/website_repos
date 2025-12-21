@@ -8,6 +8,10 @@ export default function LoginPage() {
   const router = useRouter()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const callbackUrl =
+    typeof window === "undefined"
+      ? "/"
+      : new URL("/", window.location.origin).toString()
 
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-slate-950 px-4 py-16 text-white">
@@ -33,7 +37,7 @@ export default function LoginPage() {
               const result = await signIn("credentials", {
                 email,
                 password,
-                callbackUrl: "/",
+                callbackUrl,
                 redirect: false,
               })
               if (result?.error) {
