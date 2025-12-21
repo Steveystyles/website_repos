@@ -1,6 +1,7 @@
 "use client"
 
-import { useMemo } from "react"
+import { useEffect, useState } from "react"
+import { LogoutButton } from "@/components/LogoutButton"
 
 type UserShellProps = {
   userEmail: string
@@ -17,7 +18,11 @@ export default function UserShell({
   eyebrow = "User Home",
   children,
 }: UserShellProps) {
-  const currentTime = useMemo(() => new Date().toLocaleTimeString(), [])
+  const [currentTime, setCurrentTime] = useState<string | null>(null)
+
+  useEffect(() => {
+    setCurrentTime(new Date().toLocaleTimeString())
+  }, [])
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100">
@@ -34,10 +39,19 @@ export default function UserShell({
                     {title}
                   </h1>
                 </div>
-                <div className="flex items-center gap-3 rounded-full border border-slate-800 bg-slate-950/70 px-4 py-2 text-xs text-slate-300">
-                  <span className="font-semibold text-slate-200">{userEmail}</span>
-                  <span className="text-slate-500">•</span>
-                  <span>Last login: {currentTime}</span>
+                <div className="flex flex-wrap items-center gap-3 sm:justify-end">
+                  <div className="flex items-center gap-3 rounded-full border border-slate-800 bg-slate-950/70 px-4 py-2 text-xs text-slate-300">
+                    <span className="font-semibold text-slate-200">
+                      {userEmail}
+                    </span>
+                    {currentTime ? (
+                      <>
+                        <span className="text-slate-500">•</span>
+                        <span>Last login: {currentTime}</span>
+                      </>
+                    ) : null}
+                  </div>
+                  <LogoutButton />
                 </div>
               </div>
               {description ? (
