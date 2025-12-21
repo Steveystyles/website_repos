@@ -25,64 +25,12 @@ export default async function AdminLayout({
           boxShadow: "10px 0 30px -24px rgba(15, 23, 42, 0.35)",
         }}
       >
-        <div style={{ marginBottom: 20 }}>
-          <p
-            style={{
-              textTransform: "uppercase",
-              letterSpacing: "0.2em",
-              fontSize: 11,
-              fontWeight: 700,
-              color: "#94a3b8",
-              marginBottom: 6,
-            }}
-          >
-            Admin Console
-          </p>
-          <h2 style={{ fontSize: 20, fontWeight: 700, margin: 0 }}>Overview</h2>
-        </div>
-        <nav style={{ display: "grid", gap: 10 }}>
-          <a
-            href="/admin"
-            style={{
-              padding: "10px 12px",
-              borderRadius: 10,
-              border: "1px solid #e2e8f0",
-              background: "#f8fafc",
-              fontWeight: 600,
-              color: "#0f172a",
-              textDecoration: "none",
-            }}
-          >
-            Dashboard
-          </a>
-          <a
-            href="/admin/users"
-            style={{
-              padding: "10px 12px",
-              borderRadius: 10,
-              border: "1px solid #e2e8f0",
-              background: "#ffffff",
-              fontWeight: 600,
-              color: "#0f172a",
-              textDecoration: "none",
-            }}
-          >
-            Users
-          </a>
-          <a
-            href="/admin/maintenance"
-            style={{
-              padding: "10px 12px",
-              borderRadius: 10,
-              border: "1px solid #e2e8f0",
-              background: "#ffffff",
-              fontWeight: 600,
-              color: "#0f172a",
-              textDecoration: "none",
-            }}
-          >
-            Maintenance
-          </a>
+        <h2>Admin</h2>
+        <nav style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          <a href="/admin">Dashboard</a>
+          <a href="/admin/users">Users</a>
+          <a href="/admin#system-status">System</a>
+          <a href="/admin/maintenance">Maintenance</a>
         </nav>
       </aside>
 

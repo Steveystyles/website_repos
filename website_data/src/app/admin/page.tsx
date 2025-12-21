@@ -86,9 +86,12 @@ export default async function AdminDashboard() {
           <p style={{ color: "#475569", marginBottom: 16 }}>
             See environment, database, and session details at a glance.
           </p>
-          <span style={{ color: "#0f172a", fontWeight: 600 }}>
-            System status is included below.
-          </span>
+          <a
+            href="#system-status"
+            style={{ color: "#2563eb", fontWeight: 600 }}
+          >
+            Jump to system status →
+          </a>
         </div>
 
         <div style={cardStyle}>
