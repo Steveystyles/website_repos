@@ -9,9 +9,11 @@ export default function LoginPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const callbackUrl =
-    typeof window === "undefined"
+    typeof window === "undefined" ||
+    !window.location.origin ||
+    window.location.origin === "null"
       ? "/"
-      : new URL("/", window.location.origin).toString()
+      : `${window.location.origin}/`
 
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-slate-950 px-4 py-16 text-white">
