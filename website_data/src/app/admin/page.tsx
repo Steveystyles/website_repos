@@ -28,6 +28,27 @@ export default async function AdminDashboard() {
     boxShadow: "0 10px 30px -20px rgba(15, 23, 42, 0.35)",
   } as const;
 
+  const systemCardStyle = {
+    ...cardStyle,
+    padding: 0,
+    overflow: "hidden",
+  } as const;
+
+  const systemCardHeaderStyle = {
+    padding: "12px 16px",
+    background: "#f8fafc",
+    borderBottom: "1px solid #e2e8f0",
+    textTransform: "uppercase",
+    letterSpacing: "0.08em",
+    fontSize: 12,
+    fontWeight: 700,
+    color: "#475569",
+  } as const;
+
+  const systemCardBodyStyle = {
+    padding: 16,
+  } as const;
+
   return (
     <div
       style={{
@@ -113,75 +134,75 @@ export default async function AdminDashboard() {
             gap: 16,
           }}
         >
-          <div style={cardStyle}>
-            <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 12 }}>
-              Environment
-            </h3>
-            <ul style={{ display: "grid", gap: 8, color: "#0f172a" }}>
-              <li>
-                <strong>Mode:</strong>{" "}
-                <span
-                  style={{
-                    color: environment === "PROD" ? "#991b1b" : "#075985",
-                    fontWeight: 600,
-                  }}
-                >
-                  {environment}
-                </span>
-              </li>
-              <li>
-                <strong>Node.js:</strong> {nodeVersion}
-              </li>
-            </ul>
-          </div>
-
-          <div style={cardStyle}>
-            <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 12 }}>
-              Application
-            </h3>
-            <ul style={{ display: "grid", gap: 8 }}>
-              <li>
-                <strong>Name:</strong> {appName}
-              </li>
-            </ul>
-          </div>
-
-          <div style={cardStyle}>
-            <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 12 }}>
-              Database
-            </h3>
-            <ul style={{ display: "grid", gap: 8 }}>
-              <li>
-                <strong>Status:</strong>{" "}
-                <span
-                  style={{
-                    color: dbStatus === "OK" ? "#065f46" : "#991b1b",
-                    fontWeight: 600,
-                  }}
-                >
-                  {dbStatus}
-                </span>
-              </li>
-              {dbError && (
-                <li style={{ color: "#991b1b" }}>
-                  <strong>Error:</strong> {dbError}
+          <div style={systemCardStyle}>
+            <div style={systemCardHeaderStyle}>Environment</div>
+            <div style={systemCardBodyStyle}>
+              <ul style={{ display: "grid", gap: 8, color: "#0f172a" }}>
+                <li>
+                  <strong>Mode:</strong>{" "}
+                  <span
+                    style={{
+                      color: environment === "PROD" ? "#991b1b" : "#075985",
+                      fontWeight: 600,
+                    }}
+                  >
+                    {environment}
+                  </span>
                 </li>
-              )}
-            </ul>
+                <li>
+                  <strong>Node.js:</strong> {nodeVersion}
+                </li>
+              </ul>
+            </div>
           </div>
 
-          <div style={cardStyle}>
-            <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 12 }}>
-              Current Session
-            </h3>
-            <ul style={{ display: "grid", gap: 8 }}>
-              <li>
-                <strong>User:</strong> {session.user.email}
-              </li>
-              <li>
-                <strong>Role:</strong> {session.user.role}
-              </li>
-            </ul>
+          <div style={systemCardStyle}>
+            <div style={systemCardHeaderStyle}>Application</div>
+            <div style={systemCardBodyStyle}>
+              <ul style={{ display: "grid", gap: 8 }}>
+                <li>
+                  <strong>Name:</strong> {appName}
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <div style={systemCardStyle}>
+            <div style={systemCardHeaderStyle}>Database</div>
+            <div style={systemCardBodyStyle}>
+              <ul style={{ display: "grid", gap: 8 }}>
+                <li>
+                  <strong>Status:</strong>{" "}
+                  <span
+                    style={{
+                      color: dbStatus === "OK" ? "#065f46" : "#991b1b",
+                      fontWeight: 600,
+                    }}
+                  >
+                    {dbStatus}
+                  </span>
+                </li>
+                {dbError && (
+                  <li style={{ color: "#991b1b" }}>
+                    <strong>Error:</strong> {dbError}
+                  </li>
+                )}
+              </ul>
+            </div>
+          </div>
+
+          <div style={systemCardStyle}>
+            <div style={systemCardHeaderStyle}>Current Session</div>
+            <div style={systemCardBodyStyle}>
+              <ul style={{ display: "grid", gap: 8 }}>
+                <li>
+                  <strong>User:</strong> {session.user.email}
+                </li>
+                <li>
+                  <strong>Role:</strong> {session.user.role}
+                </li>
+              </ul>
+            </div>
           </div>
         </div>
       </section>
