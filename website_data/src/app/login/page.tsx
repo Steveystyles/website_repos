@@ -1,9 +1,11 @@
 "use client"
 
 import { signIn } from "next-auth/react"
+import { useRouter } from "next/navigation"
 import { useState } from "react"
 
 export default function LoginPage() {
+  const router = useRouter()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
 
@@ -28,11 +30,21 @@ export default function LoginPage() {
             className="mt-8 space-y-5"
             onSubmit={async (e) => {
               e.preventDefault()
-              await signIn("credentials", {
+              const result = await signIn("credentials", {
                 email,
                 password,
                 callbackUrl: "/",
+                redirect: false,
               })
+              if (result?.error) {
+                router.push(
+                  `/login/error?error=${encodeURIComponent(result.error)}`
+                )
+                return
+              }
+              if (result?.url) {
+                router.push(result.url)
+              }
             }}
           >
             <label className="block space-y-2 text-sm font-medium text-slate-200">
