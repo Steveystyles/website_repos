@@ -8,14 +8,14 @@ type HomePageProps = {
 }
 
 const viewConfig = {
-  overview: {
-    label: "Overview",
-    title: "Overview",
+  outputOne: {
+    label: "Output One",
+    title: "Output One",
     description:
-      "A compact snapshot of the dashboards and alerts you want to highlight.",
+      "A focused placeholder view for your first display output or screen.",
     content: (
       <div className="grid gap-4 lg:grid-cols-2">
-        {["Snapshot", "Upcoming Tasks", "Alerts"].map((title) => (
+        {["Feed A", "Feed B", "Feed C", "Feed D"].map((title) => (
           <div
             key={title}
             className="rounded-xl border border-slate-800 bg-slate-900/50 p-5"
@@ -27,71 +27,70 @@ const viewConfig = {
               </span>
             </div>
             <p className="mt-3 text-sm text-slate-400">
-              Use this card to surface KPIs, trends, or the latest system health
-              updates.
+              Reserve this slot for analytics, alerts, or a live status tile.
             </p>
           </div>
         ))}
       </div>
     ),
   },
-  reports: {
-    label: "Reports",
-    title: "Reports",
+  outputTwo: {
+    label: "Output Two",
+    title: "Output Two",
     description:
-      "Quick access to scheduled exports and reporting workflows in one view.",
+      "Second screen space for operational metrics and quick-glance updates.",
     content: (
       <div className="grid gap-4 lg:grid-cols-3">
-        {["Weekly Digest", "Quarterly Review", "Custom Exports"].map((label) => (
+        {["Operational Pulse", "Queue Health", "SLA Watch"].map((label) => (
           <div
             key={label}
             className="rounded-xl border border-slate-800 bg-slate-900/50 p-5"
           >
             <h2 className="text-sm font-semibold text-slate-200">{label}</h2>
             <p className="mt-3 text-sm text-slate-400">
-              Swap in filters, scheduling, and export actions when ready.
+              Drop in charts, counters, or system summaries when ready.
             </p>
           </div>
         ))}
       </div>
     ),
   },
-  team: {
-    label: "Team",
-    title: "Team",
+  outputThree: {
+    label: "Output Three",
+    title: "Output Three",
     description:
-      "Member management and invitations can live here once you wire up APIs.",
+      "Collaborative space for team-facing information and announcements.",
     content: (
       <div className="grid gap-4 lg:grid-cols-2">
-        {["Members", "Invitations"].map((label) => (
+        {["Announcements", "Team Goals", "Upcoming Events"].map((label) => (
           <div
             key={label}
             className="rounded-xl border border-slate-800 bg-slate-900/50 p-5"
           >
             <h2 className="text-sm font-semibold text-slate-200">{label}</h2>
             <p className="mt-3 text-sm text-slate-400">
-              Add roles, permissions, and request workflows here.
+              Share daily priorities, highlights, or recognition here.
             </p>
           </div>
         ))}
       </div>
     ),
   },
-  settings: {
-    label: "Settings",
-    title: "Settings",
+  outputFour: {
+    label: "Output Four",
+    title: "Output Four",
     description:
-      "Organize preference panels, billing, and notifications in this space.",
+      "A configuration-friendly layout for settings, tooling, or escalation.",
     content: (
       <div className="grid gap-4 lg:grid-cols-3">
-        {["Profile", "Notifications", "Billing"].map((label) => (
+        {["Config Panel", "Escalation", "Playbooks"].map((label) => (
           <div
             key={label}
             className="rounded-xl border border-slate-800 bg-slate-900/50 p-5"
           >
             <h2 className="text-sm font-semibold text-slate-200">{label}</h2>
             <p className="mt-3 text-sm text-slate-400">
-              Placeholder controls for {label.toLowerCase()} settings.
+              Placeholder controls for {label.toLowerCase()} workflows.
             </p>
           </div>
         ))}
@@ -104,7 +103,7 @@ export default function Home({ searchParams }: HomePageProps) {
   const activeKey =
     searchParams?.view && searchParams.view in viewConfig
       ? (searchParams.view as keyof typeof viewConfig)
-      : "overview"
+      : "outputOne"
   const activeView = viewConfig[activeKey]
 
   return (
@@ -114,16 +113,18 @@ export default function Home({ searchParams }: HomePageProps) {
       eyebrow="Splash"
     >
       <section className="mt-6 space-y-6">
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2" role="tablist">
           {Object.entries(viewConfig).map(([key, view]) => {
             const isActive = key === activeKey
             return (
               <Link
                 key={key}
                 href={`/?view=${key}`}
+                role="tab"
+                aria-selected={isActive}
                 className={`rounded-full border px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] transition ${
                   isActive
-                    ? "border-sky-400/70 bg-sky-500/20 text-sky-200"
+                    ? "border-sky-400/70 bg-sky-500/20 text-sky-100 shadow-[0_0_18px_rgba(56,189,248,0.35)]"
                     : "border-slate-700 bg-slate-900/40 text-slate-400 hover:border-slate-500 hover:text-slate-200"
                 }`}
               >
@@ -144,7 +145,7 @@ export default function Home({ searchParams }: HomePageProps) {
               </h2>
             </div>
             <span className="rounded-full bg-slate-800 px-3 py-1 text-xs text-slate-400">
-              Placeholder view
+              4-screen placeholder output
             </span>
           </div>
           <p className="mt-3 max-w-2xl text-sm text-slate-400">
