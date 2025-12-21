@@ -20,7 +20,7 @@ export default async function AdminLayout({
         <nav style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           <a href="/admin">Dashboard</a>
           <a href="/admin/users">Users</a>
-          <a href="/admin/system">System</a>
+          <a href="/admin#system-status">System</a>
           <a href="/admin/maintenance">Maintenance</a>
         </nav>
       </aside>
