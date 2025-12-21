@@ -1,16 +1,24 @@
+import Link from "next/link"
 import UserPage from "@/components/home/UserPage"
 
-export default function Home() {
-  return (
-    <UserPage
-      title={(userEmail) => `Welcome back, ${userEmail}`}
-      description="This is your user-level workspace. API-powered data will live here soon—right now you can use the layout to plan dashboards, reports, and alerts."
-    >
-      <section className="mt-8 grid gap-6 lg:grid-cols-3">
-        {["Active Projects", "API Status", "Recent Activity"].map((title) => (
+type HomePageProps = {
+  searchParams?: {
+    view?: string
+  }
+}
+
+const viewConfig = {
+  overview: {
+    label: "Overview",
+    title: "Overview",
+    description:
+      "A compact snapshot of the dashboards and alerts you want to highlight.",
+    content: (
+      <div className="grid gap-4 lg:grid-cols-2">
+        {["Snapshot", "Upcoming Tasks", "Alerts"].map((title) => (
           <div
             key={title}
-            className="rounded-xl border border-slate-800 bg-slate-900/50 p-5 shadow-sm"
+            className="rounded-xl border border-slate-800 bg-slate-900/50 p-5"
           >
             <div className="flex items-center justify-between">
               <h2 className="text-sm font-semibold text-slate-200">{title}</h2>
@@ -18,43 +26,131 @@ export default function Home() {
                 Placeholder
               </span>
             </div>
-            <div className="mt-4 space-y-3">
-              <div className="h-2 w-full rounded-full bg-slate-800">
-                <div className="h-2 w-2/3 rounded-full bg-indigo-500/80" />
-              </div>
-              <div className="space-y-2 text-xs text-slate-400">
-                <p>Connect your APIs to replace these metrics.</p>
-                <p>Track trends, alerts, and engagement in real time.</p>
-              </div>
-            </div>
+            <p className="mt-3 text-sm text-slate-400">
+              Use this card to surface KPIs, trends, or the latest system health
+              updates.
+            </p>
           </div>
         ))}
-      </section>
-
-      <section className="mt-10">
-        <div className="rounded-2xl border border-dashed border-slate-700 bg-slate-900/30 p-8 text-center">
-          <h3 className="text-lg font-semibold text-slate-200">
-            Placeholder canvas for your main content
-          </h3>
-          <p className="mt-2 text-sm text-slate-400">
-            Drop in charts, tables, and API-driven widgets here once they are ready.
-          </p>
-          <div className="mt-6 grid gap-4 sm:grid-cols-2">
-            <div className="rounded-lg border border-slate-800 bg-slate-900/60 p-4 text-left">
-              <p className="text-xs uppercase tracking-widest text-slate-500">
-                Next step
-              </p>
-              <p className="mt-2 text-sm text-slate-200">Wire up endpoint data.</p>
-            </div>
-            <div className="rounded-lg border border-slate-800 bg-slate-900/60 p-4 text-left">
-              <p className="text-xs uppercase tracking-widest text-slate-500">
-                Reminder
-              </p>
-              <p className="mt-2 text-sm text-slate-200">
-                Add filters and context once endpoints are available.
-              </p>
-            </div>
+      </div>
+    ),
+  },
+  reports: {
+    label: "Reports",
+    title: "Reports",
+    description:
+      "Quick access to scheduled exports and reporting workflows in one view.",
+    content: (
+      <div className="grid gap-4 lg:grid-cols-3">
+        {["Weekly Digest", "Quarterly Review", "Custom Exports"].map((label) => (
+          <div
+            key={label}
+            className="rounded-xl border border-slate-800 bg-slate-900/50 p-5"
+          >
+            <h2 className="text-sm font-semibold text-slate-200">{label}</h2>
+            <p className="mt-3 text-sm text-slate-400">
+              Swap in filters, scheduling, and export actions when ready.
+            </p>
           </div>
+        ))}
+      </div>
+    ),
+  },
+  team: {
+    label: "Team",
+    title: "Team",
+    description:
+      "Member management and invitations can live here once you wire up APIs.",
+    content: (
+      <div className="grid gap-4 lg:grid-cols-2">
+        {["Members", "Invitations"].map((label) => (
+          <div
+            key={label}
+            className="rounded-xl border border-slate-800 bg-slate-900/50 p-5"
+          >
+            <h2 className="text-sm font-semibold text-slate-200">{label}</h2>
+            <p className="mt-3 text-sm text-slate-400">
+              Add roles, permissions, and request workflows here.
+            </p>
+          </div>
+        ))}
+      </div>
+    ),
+  },
+  settings: {
+    label: "Settings",
+    title: "Settings",
+    description:
+      "Organize preference panels, billing, and notifications in this space.",
+    content: (
+      <div className="grid gap-4 lg:grid-cols-3">
+        {["Profile", "Notifications", "Billing"].map((label) => (
+          <div
+            key={label}
+            className="rounded-xl border border-slate-800 bg-slate-900/50 p-5"
+          >
+            <h2 className="text-sm font-semibold text-slate-200">{label}</h2>
+            <p className="mt-3 text-sm text-slate-400">
+              Placeholder controls for {label.toLowerCase()} settings.
+            </p>
+          </div>
+        ))}
+      </div>
+    ),
+  },
+}
+
+export default function Home({ searchParams }: HomePageProps) {
+  const activeKey =
+    searchParams?.view && searchParams.view in viewConfig
+      ? (searchParams.view as keyof typeof viewConfig)
+      : "overview"
+  const activeView = viewConfig[activeKey]
+
+  return (
+    <UserPage
+      title={activeView.title}
+      description={activeView.description}
+      eyebrow="Splash"
+    >
+      <section className="mt-6 space-y-6">
+        <div className="flex flex-wrap gap-2">
+          {Object.entries(viewConfig).map(([key, view]) => {
+            const isActive = key === activeKey
+            return (
+              <Link
+                key={key}
+                href={`/?view=${key}`}
+                className={`rounded-full border px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] transition ${
+                  isActive
+                    ? "border-sky-400/70 bg-sky-500/20 text-sky-200"
+                    : "border-slate-700 bg-slate-900/40 text-slate-400 hover:border-slate-500 hover:text-slate-200"
+                }`}
+              >
+                {view.label}
+              </Link>
+            )
+          })}
+        </div>
+
+        <div className="rounded-2xl border border-slate-800 bg-slate-900/40 p-6">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <p className="text-xs uppercase tracking-[0.35em] text-slate-500">
+                {activeView.title}
+              </p>
+              <h2 className="mt-2 text-xl font-semibold text-slate-100">
+                {activeView.title} workspace
+              </h2>
+            </div>
+            <span className="rounded-full bg-slate-800 px-3 py-1 text-xs text-slate-400">
+              Placeholder view
+            </span>
+          </div>
+          <p className="mt-3 max-w-2xl text-sm text-slate-400">
+            {activeView.description}
+          </p>
+          <div className="mt-6">{activeView.content}</div>
         </div>
       </section>
     </UserPage>
