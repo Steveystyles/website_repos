@@ -3,12 +3,17 @@
 import { signOut } from "next-auth/react"
 
 export function LogoutButton() {
+  const callbackUrl =
+    typeof window === "undefined"
+      ? "/login"
+      : new URL("/login", window.location.origin).toString()
+
   return (
     <button
       type="button"
       onClick={() =>
         signOut({
-          callbackUrl: "/login",
+          callbackUrl,
         })
       }
       style={{
