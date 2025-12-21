@@ -1,6 +1,6 @@
 "use client"
 
-import { signIn } from "next-auth/react"
+import { getSession, signIn } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 
@@ -46,9 +46,10 @@ export default function LoginPage() {
                 )
                 return
               }
-              if (result?.url) {
-                router.push(result.url)
-              }
+              const session = await getSession()
+              const destination =
+                session?.user?.role === "ADMIN" ? "/admin" : "/"
+              router.push(destination)
             }}
           >
             <label className="block space-y-2 text-sm font-medium text-slate-200">
