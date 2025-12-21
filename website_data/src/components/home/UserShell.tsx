@@ -12,10 +12,10 @@ type UserShellProps = {
 }
 
 const navItems = [
-  { href: "/placeholder-1", label: "Overview" },
-  { href: "/placeholder-2", label: "Reports" },
-  { href: "/placeholder-3", label: "Team" },
-  { href: "/placeholder-4", label: "Settings" },
+  { href: "/?view=overview", label: "Overview" },
+  { href: "/?view=reports", label: "Reports" },
+  { href: "/?view=team", label: "Team" },
+  { href: "/?view=settings", label: "Settings" },
 ]
 
 export default function UserShell({
@@ -31,27 +31,26 @@ export default function UserShell({
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100">
-      <div className="flex min-h-screen">
-        <div className="flex w-full flex-col lg:flex-row">
-          <div className="flex items-center justify-between border-b border-slate-800 bg-slate-900/70 px-4 py-4 lg:hidden">
-            <button
-              type="button"
-              onClick={() => setIsMobileNavOpen(true)}
-              aria-label="Open navigation"
-              className="flex h-11 w-11 items-center justify-center rounded-md border border-slate-700 text-slate-100 transition hover:border-slate-500 hover:text-white"
-            >
-              <span className="text-xl leading-none">☰</span>
-            </button>
-            <div className="text-right">
-              <p className="text-xs uppercase tracking-[0.3em] text-slate-500">
-                {eyebrow}
-              </p>
-              <p className="text-sm font-semibold text-slate-100">{title}</p>
-            </div>
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-800 text-xs font-semibold text-slate-200">
-              {userEmail.slice(0, 2).toUpperCase()}
-            </div>
+      <div className="flex min-h-screen flex-col">
+        <div className="flex items-center justify-between border-b border-slate-800 bg-slate-900/70 px-4 py-4 lg:hidden">
+          <button
+            type="button"
+            onClick={() => setIsMobileNavOpen(true)}
+            aria-label="Open navigation"
+            className="flex h-11 w-11 items-center justify-center rounded-md border border-slate-700 text-slate-100 transition hover:border-slate-500 hover:text-white"
+          >
+            <span className="text-xl leading-none">☰</span>
+          </button>
+          <div className="text-right">
+            <p className="text-xs uppercase tracking-[0.3em] text-slate-500">
+              {eyebrow}
+            </p>
+            <p className="text-sm font-semibold text-slate-100">{title}</p>
           </div>
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-800 text-xs font-semibold text-slate-200">
+            {userEmail.slice(0, 2).toUpperCase()}
+          </div>
+        </div>
 
           {isMobileNavOpen ? (
             <button
@@ -62,14 +61,14 @@ export default function UserShell({
             />
           ) : null}
 
-          <aside
-            className={`fixed inset-y-0 left-0 z-40 flex w-72 flex-col border-r border-slate-800 bg-slate-900/95 transition-transform duration-300 lg:static lg:translate-x-0 lg:bg-slate-900/60 ${
-              isMobileNavOpen ? "translate-x-0" : "-translate-x-full"
-            } ${isCollapsed ? "lg:w-20" : "lg:w-64"}`}
-          >
-            <div className="flex items-center justify-between gap-2 border-b border-slate-800 px-4 py-4 lg:border-b-0">
-              <button
-                type="button"
+        <aside
+          className={`fixed inset-y-0 left-0 z-40 flex w-72 flex-col border-r border-slate-800 bg-slate-900/95 shadow-2xl transition-transform duration-300 lg:translate-x-0 lg:bg-slate-900/60 ${
+            isMobileNavOpen ? "translate-x-0" : "-translate-x-full"
+          } ${isCollapsed ? "lg:w-20" : "lg:w-64"}`}
+        >
+          <div className="flex items-center justify-between gap-2 border-b border-slate-800 px-4 py-4 lg:border-b-0">
+            <button
+              type="button"
                 onClick={() => {
                   setIsCollapsed((prev) => !prev)
                   setIsMobileNavOpen(false)
@@ -122,21 +121,20 @@ export default function UserShell({
             </div>
           </aside>
 
-          <main className="flex-1 px-4 py-6 lg:px-10 lg:py-8">
-            <header className="flex flex-col gap-2 border-b border-slate-800 pb-6">
-              <p className="text-xs uppercase tracking-[0.3em] text-slate-500 sm:text-sm">
-                {eyebrow}
-              </p>
-              <h1 className="text-2xl font-semibold text-white sm:text-3xl">
-                {title}
-              </h1>
-              {description ? (
-                <p className="max-w-2xl text-sm text-slate-400">{description}</p>
-              ) : null}
-            </header>
-            {children}
-          </main>
-        </div>
+        <main className="flex-1 px-4 py-6 lg:px-10 lg:py-8">
+          <header className="flex flex-col gap-2 border-b border-slate-800 pb-6">
+            <p className="text-xs uppercase tracking-[0.3em] text-slate-500 sm:text-sm">
+              {eyebrow}
+            </p>
+            <h1 className="text-2xl font-semibold text-white sm:text-3xl">
+              {title}
+            </h1>
+            {description ? (
+              <p className="max-w-2xl text-sm text-slate-400">{description}</p>
+            ) : null}
+          </header>
+          {children}
+        </main>
       </div>
     </div>
   )
