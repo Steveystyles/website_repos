@@ -20,7 +20,7 @@ export default function LoginPage() {
             </p>
             <h1 className="text-3xl font-semibold text-white">Sign in to your account</h1>
             <p className="text-sm text-slate-300">
-              Use your admin credentials to continue.
+              Use your admin or user credentials to continue.
             </p>
           </div>
 
@@ -70,7 +70,7 @@ export default function LoginPage() {
 
         <div className="mt-6 flex items-center justify-center gap-2 text-xs text-slate-400">
           <span className="h-px w-10 bg-white/10" />
-          Secure administrative access
+          Secure access for admins and users
           <span className="h-px w-10 bg-white/10" />
         </div>
       </div>
