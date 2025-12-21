@@ -81,18 +81,6 @@ export default async function AdminDashboard() {
 
         <div style={cardStyle}>
           <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 8 }}>
-            System Status
-          </h3>
-          <p style={{ color: "#475569", marginBottom: 16 }}>
-            Environment, database, and session details live on this page.
-          </p>
-          <span style={{ color: "#0f172a", fontWeight: 600 }}>
-            Review the system section below.
-          </span>
-        </div>
-
-        <div style={cardStyle}>
-          <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 8 }}>
             Maintenance
           </h3>
           <p style={{ color: "#475569", marginBottom: 16 }}>

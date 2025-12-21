@@ -1,4 +1,5 @@
 import { requireAdmin } from "@/lib/requireAdmin";
+import AdminNav from "./AdminNav";
 
 export default async function AdminLayout({
   children,
@@ -40,50 +41,7 @@ export default async function AdminLayout({
           </p>
           <h2 style={{ fontSize: 20, fontWeight: 700, margin: 0 }}>Overview</h2>
         </div>
-        <nav style={{ display: "grid", gap: 10 }}>
-          <a
-            href="/admin"
-            style={{
-              padding: "10px 12px",
-              borderRadius: 10,
-              border: "1px solid #e2e8f0",
-              background: "#f8fafc",
-              fontWeight: 600,
-              color: "#0f172a",
-              textDecoration: "none",
-            }}
-          >
-            Dashboard
-          </a>
-          <a
-            href="/admin/users"
-            style={{
-              padding: "10px 12px",
-              borderRadius: 10,
-              border: "1px solid #e2e8f0",
-              background: "#ffffff",
-              fontWeight: 600,
-              color: "#0f172a",
-              textDecoration: "none",
-            }}
-          >
-            Users
-          </a>
-          <a
-            href="/admin/maintenance"
-            style={{
-              padding: "10px 12px",
-              borderRadius: 10,
-              border: "1px solid #e2e8f0",
-              background: "#ffffff",
-              fontWeight: 600,
-              color: "#0f172a",
-              textDecoration: "none",
-            }}
-          >
-            Maintenance
-          </a>
-        </nav>
+        <AdminNav />
       </aside>
 
       <main style={{ padding: 24, flex: 1 }}>{children}</main>
