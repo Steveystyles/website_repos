@@ -6,6 +6,10 @@ import bcrypt from "bcryptjs"
 
 export const authOptions: NextAuthOptions = {
   secret: readSecret("NEXTAUTH_SECRET"),
+  pages: {
+    signIn: "/login",
+    error: "/login/error",
+  },
 
   providers: [
     Credentials({
@@ -50,6 +54,12 @@ export const authOptions: NextAuthOptions = {
   },
 
   callbacks: {
+    async signIn({ user }) {
+      if (user?.role === "ADMIN") {
+        return "/admin"
+      }
+      return true
+    },
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id
