@@ -48,7 +48,9 @@ export default function LoginPage() {
               }
               const session = await getSession()
               const destination =
-                session?.user?.role === "ADMIN" ? "/admin" : "/"
+                session?.user?.role === "ADMIN"
+                  ? "/admin"
+                  : result?.url ?? "/"
               router.push(destination)
             }}
           >
