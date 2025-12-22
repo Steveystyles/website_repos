@@ -1,23 +1,14 @@
-"use client"
+import { getServerSession } from "next-auth"
+import { redirect } from "next/navigation"
+import { authOptions } from "@/auth/auth"
+import DashboardClient from "@/components/dashboard/DashboardClient"
 
-import { useState } from "react"
-import OutputSelector from "@/components/dashboard/OutputSelector"
-import OutputContainer from "@/components/dashboard/OutputContainer"
+export default async function DashboardPage() {
+  const session = await getServerSession(authOptions)
 
-export type OutputKey = "one" | "two" | "three" | "four"
+  if (!session?.user) {
+    redirect("/login")
+  }
 
-export default function DashboardPage() {
-  const [active, setActive] = useState<OutputKey>("one")
-
-  return (
-    <div className="flex flex-col gap-4 p-4">
-      <header className="text-center">
-        <h1 className="text-xl font-semibold">Fultons Movies</h1>
-        <p className="text-sm text-neutral-400">Live dashboard</p>
-      </header>
-
-      <OutputSelector active={active} onChange={setActive} />
-      <OutputContainer active={active} />
-    </div>
-  )
+  return <DashboardClient />
 }
