@@ -2,6 +2,7 @@
 
 import { OutputKey } from "./DashboardClient"
 import { lightHaptic } from "@/lib/haptics"
+import type { ReactNode } from "react"
 
 
 type Props = {
@@ -19,7 +20,7 @@ const TABS: { key: OutputKey; label: string }[] = [
 /**
  * Inline SVG icons (no libraries)
  */
-const ICONS: Record<OutputKey, JSX.Element> = {
+const ICONS: Record<OutputKey, ReactNode> = {
   one: (
     <svg
       viewBox="0 0 24 24"
