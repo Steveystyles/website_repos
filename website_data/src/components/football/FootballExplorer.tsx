@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import LeagueTable from "./LeagueTable"
 import TeamSnapshot from "./TeamSnapshot"
 import OnThisDay from "./OnThisDay"
@@ -23,9 +23,20 @@ export default function FootballExplorer() {
   const [leagueId, setLeagueId] = useState("")
   const [season, setSeason] = useState("")
   const [teamId, setTeamId] = useState("")
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const detailsRef = useRef<HTMLDivElement | null>(null)
+  const handleLeagueChange = useCallback(
+    (id: string, nextSeason: string, name: string) => {
+      setLeagueId(id)
+      setSeason(nextSeason)
+      setLeagueName(name)
+      setTeamId("") // reset before auto-select
+      setError(null)
+    },
+    []
+  )
 
   // 🔁 Fetch league table
   useEffect(() => {
@@ -33,25 +44,40 @@ export default function FootballExplorer() {
 
     let alive = true
     setLoading(true)
+    setError(null)
 
-    fetch(
-      `/api/football/table?leagueId=${leagueId}&season=${season}`
-    )
-      .then((r) => r.json())
+    fetch(`/api/football/table?leagueId=${leagueId}&season=${season}`)
+      .then(async (r) => {
+        if (!r.ok) throw new Error("Failed to load league table")
+        return r.json()
+      })
       .then((data) => {
         if (!alive) return
 
-        setRows(data.rows ?? [])
-        setLeagueName(data.leagueName ?? "")
+        const nextRows = data.rows ?? []
+        setRows(nextRows)
+        setLeagueName((prev) => data.leagueName ?? prev ?? "")
+
+        if (nextRows.length === 0) {
+          setError("League table is currently unavailable")
+          setTeamId("")
+          return
+        }
 
         // 🔴 Auto-select St Mirren
-        const stMirren = data.rows?.find((r: LeagueRow) =>
+        const stMirren = nextRows.find((r: LeagueRow) =>
           r.teamName.toLowerCase().includes("st mirren")
         )
 
         if (stMirren) {
           setTeamId(stMirren.teamId)
         }
+      })
+      .catch(() => {
+        if (!alive) return
+        setRows([])
+        setTeamId("")
+        setError("Unable to load league table")
       })
       .finally(() => alive && setLoading(false))
 
@@ -73,25 +99,24 @@ export default function FootballExplorer() {
   return (
     <section className="space-y-5">
       <LeagueSelector
-        onChange={(id, season, name) => {
-          setLeagueId(id)
-          setSeason(season)
-          setLeagueName(name)
-          setTeamId("") // reset before auto-select
-        }}
+        onChange={handleLeagueChange}
       />
 
       {loading ? (
         <div className="text-sm text-neutral-400">
           Loading league table…
         </div>
-      ) : (
+      ) : rows.length > 0 ? (
         <LeagueTable
           leagueName={leagueName}
           rows={rows}
           selectedTeamId={teamId}
           onSelectTeam={setTeamId}
         />
+      ) : (
+        <div className="rounded-xl border border-smfc-grey bg-smfc-charcoal px-4 py-3 text-sm text-neutral-300">
+          {error ?? "Select a league to view standings"}
+        </div>
       )}
 
       <div ref={detailsRef} className="space-y-4">
