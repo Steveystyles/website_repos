@@ -50,39 +50,31 @@ export default function LeagueTable({
               type="button"
               onClick={() => onSelectTeam(row.teamId)}
               className={`
-                w-full text-left px-4 py-3 sm:px-5
-                transition-colors duration-150
+                w-full px-4 py-4 sm:px-5
+                transition-colors duration-150 text-center
                 ${isActive
                   ? "bg-smfc-charcoal/80 ring-1 ring-inset ring-smfc-red/60"
                   : "hover:bg-smfc-charcoal/60"}
               `}
             >
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex min-w-0 flex-1 items-center gap-3">
-                  <div
+              <div className="flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4">
+                <div className="flex items-center justify-center gap-3 sm:min-w-0">
+                  <span
                     className={`flex h-10 w-10 items-center justify-center rounded-xl border bg-smfc-black text-sm font-bold text-neutral-100 ${isActive ? "border-smfc-red/80 text-smfc-white" : "border-smfc-grey/70"}`}
                   >
                     {row.position}
-                  </div>
+                  </span>
 
                   <img
                     src={row.crest}
-                    alt=""
-                    className="h-8 w-8 shrink-0 rounded-full bg-smfc-black object-contain"
+                    alt={`${row.teamName} badge`}
+                    className="h-10 w-10 shrink-0 rounded-full bg-smfc-black object-contain"
                     loading="lazy"
                   />
 
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-semibold text-smfc-white">
+                  <div className="min-w-0 text-left sm:text-center">
+                    <p className="truncate text-base font-semibold text-smfc-white">
                       {row.teamName}
-                    </p>
-                    <p className="text-xs text-neutral-400">
-                      Points{" "}
-                      <span className="font-semibold text-smfc-white">
-                        {row.points}
-                      </span>{" "}
-                      • GD {row.goalDifference > 0 ? "+" : ""}
-                      {row.goalDifference}
                     </p>
                   </div>
                 </div>

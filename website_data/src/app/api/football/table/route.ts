@@ -18,6 +18,7 @@ type SportsDbTableRow = {
   intGoalDifference?: string | number
   intPoints?: string | number
   strTeamBadge?: string
+  strBadge?: string
   strLeague?: string
 }
 
@@ -50,7 +51,10 @@ async function fetchTable(
         lost: Number(r.intLoss ?? 0),
         goalDifference: Number(r.intGoalDifference ?? 0),
         points: Number(r.intPoints ?? 0),
-        crest: r.strTeamBadge ?? "",
+        crest: (r.strTeamBadge ?? r.strBadge ?? "").replace(
+          /^http:\/\//,
+          "https://"
+        ),
       }))
       // TheSportsDB occasionally returns rows out of order; enforce the correct ordering
       // so the UI grid is consistent with the official table.
@@ -75,30 +79,27 @@ export async function GET(req: Request) {
 
   const suppliedKey = process.env.THESPORTSDB_API_KEY?.trim() || ""
   const defaultKey = "123"
-  const fallbackKey = suppliedKey === "3" ? defaultKey : "3"
+  const fallbackKey = "3"
 
-  const primaryKey = suppliedKey || defaultKey
-  let best = await fetchTable(primaryKey, leagueId, season)
+  const keys = [defaultKey, suppliedKey, fallbackKey]
+  const seen = new Set<string>()
 
-  const needsMoreRows =
-    best.rows.length === 0 || best.rows.length < 8
+  let best = { rows: [], leagueName: "" }
+  let bestKey = ""
 
-  if (needsMoreRows && primaryKey !== defaultKey) {
-    const secondary = await fetchTable(defaultKey, leagueId, season)
-    if (secondary.rows.length > best.rows.length) {
-      best = secondary
-    }
-  }
+  for (const key of keys) {
+    if (!key || seen.has(key)) continue
+    seen.add(key)
 
-  const stillLight =
-    (best.rows.length === 0 || best.rows.length < 8) &&
-    fallbackKey &&
-    ![primaryKey, defaultKey].includes(fallbackKey)
+    const result = await fetchTable(key, leagueId, season)
 
-  if (stillLight) {
-    const tertiary = await fetchTable(fallbackKey, leagueId, season)
-    if (tertiary.rows.length > best.rows.length) {
-      best = tertiary
+    const hasMoreRows = result.rows.length > best.rows.length
+    const prefersDefault =
+      result.rows.length === best.rows.length && key === defaultKey && bestKey !== defaultKey
+
+    if (hasMoreRows || prefersDefault) {
+      best = result
+      bestKey = key
     }
   }
 
