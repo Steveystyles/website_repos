@@ -35,7 +35,7 @@ export default function LeagueTable({
       </div>
 
       {/* Rows */}
-      <div className="divide-y divide-smfc-grey">
+      <div className="divide-y divide-smfc-grey max-h-96 overflow-y-auto">
         {rows.map((row) => {
           const isActive = row.teamId === selectedTeamId
 
