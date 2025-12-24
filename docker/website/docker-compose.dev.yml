@@ -9,6 +9,9 @@ services:
     ports:
       - "3000:3000"
 
+    env_file:
+      - ../../website_data/.env.local   # ✅ ADD THIS
+      
     environment:
       DATABASE_URL: postgresql://dev:devpass@website-dev-db:5432/devdb
       NEXTAUTH_SECRET: dev-secret
