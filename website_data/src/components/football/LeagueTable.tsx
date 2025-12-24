@@ -34,8 +34,20 @@ export default function LeagueTable({
         </h3>
       </div>
 
+      {/* Column headings */}
+      <div className="bg-smfc-black/70 border-b border-smfc-grey/70 text-[11px] uppercase tracking-wide text-neutral-400">
+        <div className="grid grid-cols-[50px,1fr,60px,60px,70px,70px] items-center px-4 py-2">
+          <span className="text-center">Pos</span>
+          <span className="text-left">Team</span>
+          <span className="text-center">W</span>
+          <span className="text-center">L</span>
+          <span className="text-center">GD</span>
+          <span className="text-center">Pts</span>
+        </div>
+      </div>
+
       {/* Rows */}
-      <div className="divide-y divide-smfc-grey max-h-96 overflow-y-auto">
+      <div className="max-h-96 overflow-y-auto divide-y divide-smfc-grey">
         {rows.map((row) => {
           const isActive = row.teamId === selectedTeamId
 
@@ -45,50 +57,43 @@ export default function LeagueTable({
               type="button"
               onClick={() => onSelectTeam(row.teamId)}
               className={`
-                w-full text-left px-4 py-3
-                flex flex-col gap-1
+                grid grid-cols-[50px,1fr,60px,60px,70px,70px] items-center
+                w-full text-left px-4 py-3 gap-2
                 transition-colors duration-150
                 ${isActive
                   ? "bg-smfc-charcoal"
                   : "hover:bg-smfc-charcoal/60"}
               `}
             >
-              {/* Top line */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 min-w-0">
-                  <span className="w-5 text-sm text-neutral-400">
-                    {row.position}
-                  </span>
-                  <img
-                    src={row.crest}
-                    alt=""
-                    className="h-5 w-5"
-                    loading="lazy"
-                  />
-                  <span className="truncate font-semibold text-smfc-white">
-                    {row.teamName}
-                  </span>
-                </div>
+              <span className="text-sm font-semibold text-neutral-200 text-center">
+                {row.position}
+              </span>
 
-                <span className="text-lg font-bold text-smfc-white">
-                  {row.points}
+              <div className="flex items-center gap-3 min-w-0">
+                <img
+                  src={row.crest}
+                  alt=""
+                  className="h-6 w-6"
+                  loading="lazy"
+                />
+                <span className="truncate font-semibold text-smfc-white">
+                  {row.teamName}
                 </span>
               </div>
 
-              {/* Stats line */}
-              <div className="flex gap-4 text-xs text-neutral-400 pl-7">
-                <span>
-                  <strong className="text-neutral-200">W</strong> {row.won}
-                </span>
-                <span>
-                  <strong className="text-neutral-200">L</strong> {row.lost}
-                </span>
-                <span>
-                  <strong className="text-neutral-200">GD</strong>{" "}
-                  {row.goalDifference > 0 ? "+" : ""}
-                  {row.goalDifference}
-                </span>
-              </div>
+              <span className="text-sm text-neutral-200 text-center font-semibold">
+                {row.won}
+              </span>
+              <span className="text-sm text-neutral-200 text-center font-semibold">
+                {row.lost}
+              </span>
+              <span className="text-sm text-neutral-200 text-center font-semibold">
+                {row.goalDifference > 0 ? "+" : ""}
+                {row.goalDifference}
+              </span>
+              <span className="text-lg font-bold text-smfc-white text-center">
+                {row.points}
+              </span>
             </button>
           )
         })}
