@@ -16,6 +16,10 @@ export async function GET(req: Request) {
   const leagueId = searchParams.get("leagueId")
   const season = searchParams.get("season")
 
+  // Use the supplied API key when available – TheSportsDB test key ("3")
+  // only returns a subset of results which caused incomplete tables.
+  const apiKey = process.env.THESPORTSDB_API_KEY ?? "123"
+
   if (!leagueId || !season) {
     return Response.json({ rows: [], leagueName: "" }, { status: 400 })
   }
@@ -25,7 +29,7 @@ export async function GET(req: Request) {
   // For now: NO CACHE (to get it working first)
 
   const res = await fetch(
-    `https://www.thesportsdb.com/api/v1/json/3/lookuptable.php?l=${leagueId}&s=${season}`,
+    `https://www.thesportsdb.com/api/v1/json/${apiKey}/lookuptable.php?l=${leagueId}&s=${season}`,
     { cache: "no-store" }
   )
 
@@ -38,16 +42,20 @@ export async function GET(req: Request) {
     return Response.json({ rows: [], leagueName: "" })
   }
 
-  const rows: LeagueRow[] = table.map((r: any) => ({
-    position: Number(r.intRank),
-    teamId: String(r.idTeam),
-    teamName: r.strTeam,
-    won: Number(r.intWin),
-    lost: Number(r.intLoss),
-    goalDifference: Number(r.intGoalDifference),
-    points: Number(r.intPoints),
-    crest: r.strTeamBadge,
-  }))
+  const rows: LeagueRow[] = table
+    .map((r: any) => ({
+      position: Number(r.intRank),
+      teamId: String(r.idTeam),
+      teamName: r.strTeam,
+      won: Number(r.intWin),
+      lost: Number(r.intLoss),
+      goalDifference: Number(r.intGoalDifference),
+      points: Number(r.intPoints),
+      crest: r.strTeamBadge,
+    }))
+    // TheSportsDB occasionally returns rows out of order; enforce the correct ordering
+    // so the UI grid is consistent with the official table.
+    .sort((a, b) => a.position - b.position)
 
   const leagueName = table[0]?.strLeague ?? ""
 
