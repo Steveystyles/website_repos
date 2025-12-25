@@ -1,64 +1,52 @@
-import { prisma } from "@/lib/prisma"
+import { fetchApiFootball } from "@/lib/footballApi"
 
-type SportsDbLeague = {
-  idLeague: string
-  strLeague: string
-  strSport: string
-  strCurrentSeason?: string | null
-}
-
-async function fetchSportsDbFallback(): Promise<
-  { id: string; name: string; season: string }[]
-> {
-  try {
-    const res = await fetch(
-      "https://www.thesportsdb.com/api/v1/json/3/all_leagues.php",
-      { cache: "no-store" }
-    )
-
-    if (!res.ok) return []
-
-    const json = (await res.json()) as { leagues?: SportsDbLeague[] }
-    const soccerLeagues = (json.leagues ?? []).filter(
-      (league) => league.strSport === "Soccer"
-    )
-
-    return soccerLeagues.map((league) => ({
-      id: league.idLeague,
-      name: league.strLeague,
-      season: league.strCurrentSeason ?? "2024-2025",
-    }))
-  } catch (error) {
-    console.error("Failed to fetch leagues from TheSportsDB", error)
-    return []
+type ApiFootballLeague = {
+  league: {
+    id: number
+    name: string
+    type: string
   }
+  seasons?: {
+    year?: number
+    current?: boolean
+  }[]
 }
 
 export async function GET() {
   try {
-    const leagues = await prisma.footballLeague.findMany({
-      where: { source: "thesportsdb" },
-      orderBy: { name: "asc" },
+    const data = await fetchApiFootball<ApiFootballLeague[]>("/leagues", {
+      current: true,
     })
 
-    if (leagues.length > 0) {
-      // Fetch current seasons from TheSportsDB and map them by league ID.
-      const fallback = await fetchSportsDbFallback()
-      const seasonMap = new Map(fallback.map((l) => [l.id, l.season]))
-      return Response.json(
-        leagues.map((l) => ({
-          id: l.id,
-          name: l.name,
-          // Use the actual current season if available; otherwise default.
-          season: seasonMap.get(l.id) ?? "2024-2025",
-        }))
-      )
-    }
-  } catch (error) {
-    console.error("Failed to read leagues from database", error)
-  }
+    const leagues = (data.response ?? [])
+      // Only keep league competitions that have an active season.
+      .filter((entry) => entry.league?.type?.toLowerCase() === "league")
+      .map((entry) => {
+        const currentSeason =
+          entry.seasons?.find((s) => s.current) ??
+          entry.seasons?.sort((a, b) => (b.year ?? 0) - (a.year ?? 0))[0]
 
-  // Fallback to TheSportsDB if the database is empty or unavailable
-  const fallback = await fetchSportsDbFallback()
-  return Response.json(fallback)
+        return {
+          id: String(entry.league.id),
+          name: entry.league.name,
+          season: currentSeason?.year ? String(currentSeason.year) : String(new Date().getFullYear()),
+        }
+      })
+      // Deduplicate (API can return multiple records per league).
+      .reduce<{ seen: Set<string>; leagues: { id: string; name: string; season: string }[] }>(
+        (acc, league) => {
+          if (!acc.seen.has(league.id)) {
+            acc.seen.add(league.id)
+            acc.leagues.push(league)
+          }
+          return acc
+        },
+        { seen: new Set(), leagues: [] }
+      ).leagues
+
+    return Response.json(leagues)
+  } catch (error) {
+    console.error("Failed to fetch leagues from API-Football", error)
+    return Response.json([], { status: 500 })
+  }
 }

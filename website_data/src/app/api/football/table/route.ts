@@ -1,3 +1,5 @@
+import { fetchApiFootball } from "@/lib/footballApi"
+
 type LeagueRow = {
   position: number
   teamId: string
@@ -9,62 +11,29 @@ type LeagueRow = {
   crest: string
 }
 
-type SportsDbTableRow = {
-  intRank?: string | number
-  idTeam?: string | number
-  strTeam?: string
-  intWin?: string | number
-  intLoss?: string | number
-  intGoalDifference?: string | number
-  intPoints?: string | number
-  strTeamBadge?: string
-  strBadge?: string
-  strLeague?: string
+type ApiFootballStanding = {
+  rank?: number
+  team?: {
+    id?: number
+    name?: string
+    logo?: string
+  }
+  all?: {
+    win?: number
+    lose?: number
+    goals?: {
+      for?: number
+      against?: number
+    }
+  }
+  goalsDiff?: number
+  points?: number
 }
 
-async function fetchTable(
-  apiKey: string,
-  leagueId: string,
-  season: string
-): Promise<{ rows: LeagueRow[]; leagueName: string }> {
-  try {
-    const res = await fetch(
-      `https://www.thesportsdb.com/api/v1/json/${apiKey}/lookuptable.php?l=${leagueId}&s=${season}`,
-      { cache: "no-store" }
-    )
-
-    if (!res.ok) return { rows: [], leagueName: "" }
-
-    const json = await res.json()
-    const table = json?.table as SportsDbTableRow[] | undefined
-
-    if (!Array.isArray(table) || table.length === 0) {
-      return { rows: [], leagueName: "" }
-    }
-
-    const rows: LeagueRow[] = table
-      .map((r) => ({
-        position: Number(r.intRank ?? 0),
-        teamId: String(r.idTeam ?? ""),
-        teamName: r.strTeam ?? "",
-        won: Number(r.intWin ?? 0),
-        lost: Number(r.intLoss ?? 0),
-        goalDifference: Number(r.intGoalDifference ?? 0),
-        points: Number(r.intPoints ?? 0),
-        crest: (r.strTeamBadge ?? r.strBadge ?? "").replace(
-          /^http:\/\//,
-          "https://"
-        ),
-      }))
-      // TheSportsDB occasionally returns rows out of order; enforce the correct ordering
-      // so the UI grid is consistent with the official table.
-      .sort((a, b) => a.position - b.position)
-
-    const leagueName = table[0]?.strLeague ?? ""
-    return { rows, leagueName }
-  } catch (error) {
-    console.error("Failed to fetch table from TheSportsDB", error)
-    return { rows: [], leagueName: "" }
+type ApiFootballStandingsResponse = {
+  league?: {
+    name?: string
+    standings?: ApiFootballStanding[][]
   }
 }
 
@@ -77,31 +46,32 @@ export async function GET(req: Request) {
     return Response.json({ rows: [], leagueName: "" }, { status: 400 })
   }
 
-  const suppliedKey = process.env.THESPORTSDB_API_KEY?.trim() || ""
-  const defaultKey = "123"
-  const fallbackKey = "3"
+  try {
+    const data = await fetchApiFootball<ApiFootballStandingsResponse[]>("/standings", {
+      league: leagueId,
+      season,
+    })
 
-  const keys = [defaultKey, suppliedKey, fallbackKey]
-  const seen = new Set<string>()
+    const league = data.response?.[0]?.league
+    const standings = league?.standings?.[0] ?? []
 
-  let best: { rows: LeagueRow[]; leagueName: string } = { rows: [], leagueName: "" }
-  let bestKey = ""
+    const rows: LeagueRow[] = standings.map((entry) => ({
+      position: entry.rank ?? 0,
+      teamId: String(entry.team?.id ?? ""),
+      teamName: entry.team?.name ?? "Unknown",
+      won: entry.all?.win ?? 0,
+      lost: entry.all?.lose ?? 0,
+      goalDifference: entry.goalsDiff ?? 0,
+      points: entry.points ?? 0,
+      crest: entry.team?.logo ?? "",
+    }))
 
-  for (const key of keys) {
-    if (!key || seen.has(key)) continue
-    seen.add(key)
-
-    const result = await fetchTable(key, leagueId, season)
-
-    const hasMoreRows = result.rows.length > best.rows.length
-    const prefersDefault =
-      result.rows.length === best.rows.length && key === defaultKey && bestKey !== defaultKey
-
-    if (hasMoreRows || prefersDefault) {
-      best = result
-      bestKey = key
-    }
+    return Response.json({
+      rows,
+      leagueName: league?.name ?? "",
+    })
+  } catch (error) {
+    console.error("Failed to fetch standings from API-Football", error)
+    return Response.json({ rows: [], leagueName: "" }, { status: 500 })
   }
-
-  return Response.json(best)
 }
