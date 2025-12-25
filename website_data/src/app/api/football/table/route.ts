@@ -42,15 +42,7 @@ export async function GET(req: Request) {
     const standings =
       json?.response?.[0]?.league?.standings?.[0] ?? []
 
-    type StandingRow = {
-      rank: number
-      team: { id: number; name: string; logo: string }
-      all: { win: number; lose: number }
-      goalsDiff: number
-      points: number
-    }
-
-    const rows = (standings as StandingRow[]).map((row) => ({
+    const rows = standings.map((row: any) => ({
       position: row.rank,
       teamId: row.team.id.toString(),
       teamName: row.team.name,

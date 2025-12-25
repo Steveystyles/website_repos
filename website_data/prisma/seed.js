@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-require-imports */
 const { PrismaClient } = require("@prisma/client")
 const bcrypt = require("bcryptjs")
 
@@ -9,7 +8,7 @@ async function main() {
 
   const passwordHash = await bcrypt.hash("devpassword", 10)
 
-  await prisma.user.upsert({
+  const admin = await prisma.user.upsert({
     where: { email: "admin@dev.local" },
     update: {
       passwordHash,

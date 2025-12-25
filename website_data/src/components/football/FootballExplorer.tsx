@@ -36,12 +36,10 @@ export default function FootballExplorer() {
   useEffect(() => {
     let alive = true
 
-    const leagueSlug = LEAGUE_SLUGS[leagueId]
+    setLoading(true)
+    setTeamId("")
 
-    const resetTimer = setTimeout(() => {
-      setLoading(true)
-      setTeamId("")
-    }, 0)
+    const leagueSlug = LEAGUE_SLUGS[leagueId]
 
     fetch(`/api/football/table?league=${leagueSlug}&season=${season}`)
       .then(async (r) => {
@@ -69,7 +67,6 @@ export default function FootballExplorer() {
 
     return () => {
       alive = false
-      clearTimeout(resetTimer)
     }
   }, [leagueId, season])
 

@@ -46,46 +46,47 @@ export default function LeagueTable({
               onClick={() => onSelectTeam(row.teamId)}
               className={`
                 w-full text-left px-4 py-3
-                flex items-center justify-between gap-3
+                flex flex-col gap-1
                 transition-colors duration-150
                 ${isActive
                   ? "bg-smfc-charcoal"
                   : "hover:bg-smfc-charcoal/60"}
               `}
             >
-              <div className="flex items-center gap-2 min-w-0">
-                <span className="w-5 text-sm text-neutral-400">
-                  {row.position}
-                </span>
-                <img
-                  src={row.crest}
-                  alt=""
-                  className="h-6 w-6"
-                  loading="lazy"
-                />
-                <span className="truncate font-semibold text-smfc-white">
-                  {row.teamName}
+              {/* Top line */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="w-5 text-sm text-neutral-400">
+                    {row.position}
+                  </span>
+                  <img
+                    src={row.crest}
+                    alt=""
+                    className="h-5 w-5"
+                    loading="lazy"
+                  />
+                  <span className="truncate font-semibold text-smfc-white">
+                    {row.teamName}
+                  </span>
+                </div>
+
+                <span className="text-lg font-bold text-smfc-white">
+                  {row.points}
                 </span>
               </div>
 
-              <div className="flex items-center gap-4 text-xs text-neutral-300">
-                <span className="inline-flex items-center gap-1 text-neutral-400">
-                  <span className="text-neutral-200">W</span>
-                  <span>{row.won}</span>
+              {/* Stats line */}
+              <div className="flex gap-4 text-xs text-neutral-400 pl-7">
+                <span>
+                  <strong className="text-neutral-200">W</strong> {row.won}
                 </span>
-                <span className="inline-flex items-center gap-1 text-neutral-400">
-                  <span className="text-neutral-200">L</span>
-                  <span>{row.lost}</span>
+                <span>
+                  <strong className="text-neutral-200">L</strong> {row.lost}
                 </span>
-                <span className="inline-flex items-center gap-1 text-neutral-400">
-                  <span className="text-neutral-200">GD</span>
-                  <span>
-                    {row.goalDifference > 0 ? "+" : ""}
-                    {row.goalDifference}
-                  </span>
-                </span>
-                <span className="text-lg font-bold text-smfc-white min-w-[36px] text-right">
-                  {row.points}
+                <span>
+                  <strong className="text-neutral-200">GD</strong>{" "}
+                  {row.goalDifference > 0 ? "+" : ""}
+                  {row.goalDifference}
                 </span>
               </div>
             </button>

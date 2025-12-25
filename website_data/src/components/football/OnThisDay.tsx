@@ -19,8 +19,8 @@ export default function OnThisDay({ teamId }: { teamId: string }) {
         })
         const json = (await res.json()) as string[]
         setItems(Array.isArray(json) ? json : [])
-      } catch (e: unknown) {
-        if (e instanceof DOMException && e.name === "AbortError") return
+      } catch (e: any) {
+        if (e?.name === "AbortError") return
         setError("Failed to load history")
         setItems([])
       } finally {
