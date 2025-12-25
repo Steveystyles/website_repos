@@ -1,6 +1,17 @@
 import { NextResponse } from "next/server"
 
-const DATA: Record<string, any> = {
+type TeamResponse = {
+  teamName: string
+  manager: string
+  leaguePosition: number
+  nextMatch: {
+    opponent: string
+    date: string
+    homeAway: "H" | "A"
+  }
+}
+
+const DATA: Record<string, TeamResponse> = {
   "st-mirren": {
     teamName: "St Mirren",
     manager: "Stephen Robinson",

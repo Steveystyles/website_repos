@@ -37,9 +37,9 @@ export default function TeamSnapshot({ teamId }: { teamId: string }) {
 
         const json = (await res.json()) as TeamDetails
         setData(json)
-      } catch (e: any) {
+      } catch (e: unknown) {
         // ✅ Ignore abort noise (common on fast changes / dev mode)
-        if (e?.name === "AbortError") return
+        if (e instanceof DOMException && e.name === "AbortError") return
         setError("Failed to load team data")
         setData(null)
       } finally {
