@@ -23,6 +23,7 @@ export default function FootballExplorer() {
   const [leagueId, setLeagueId] = useState("")
   const [season, setSeason] = useState("")
   const [teamId, setTeamId] = useState("")
+  const [teamName, setTeamName] = useState("")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -35,6 +36,7 @@ export default function FootballExplorer() {
       setLeagueId(id)
       setSeason(nextSeason)
       setLeagueName(name)
+      setTeamName("")
       setTeamId("") // reset before auto-select
     },
     []
@@ -61,6 +63,7 @@ export default function FootballExplorer() {
         if (nextRows.length === 0) {
           setError("League table is currently unavailable")
           setTeamId("")
+          setTeamName("")
           return
         }
 
@@ -69,13 +72,17 @@ export default function FootballExplorer() {
           r.teamName.toLowerCase().includes("st mirren")
         )
 
-        setTeamId(stMirren?.teamId ?? nextRows[0].teamId)
+        const autoTeam = stMirren ?? nextRows[0]
+
+        setTeamId(autoTeam?.teamId ?? "")
+        setTeamName(autoTeam?.teamName ?? "")
 
       })
       .catch(() => {
         if (!alive) return
         setRows([])
         setTeamId("")
+        setTeamName("")
         setError("Unable to load league table")
       })
       .finally(() => alive && setLoading(false))
@@ -112,7 +119,10 @@ export default function FootballExplorer() {
           leagueName={leagueName}
           rows={rows}
           selectedTeamId={teamId}
-          onSelectTeam={setTeamId}
+          onSelectTeam={(id, name) => {
+            setTeamId(id)
+            setTeamName(name)
+          }}
         />
       ) : (
         <div className="rounded-xl border border-smfc-grey bg-smfc-charcoal px-4 py-3 text-sm text-neutral-300">
@@ -125,12 +135,17 @@ export default function FootballExplorer() {
           <>
             <TeamSnapshot
               teamId={teamId}
+              teamName={teamName || selectedRow?.teamName}
               leagueId={leagueId}
+              leagueName={leagueName}
               season={season}
               fallbackPosition={selectedRow?.position}
-              fallbackTeamName={selectedRow?.teamName ?? leagueName}
+              fallbackTeamName={selectedRow?.teamName ?? teamName ?? leagueName}
             />
-            <OnThisDay teamId={teamId} />
+            <OnThisDay
+              teamId={teamId}
+              teamName={teamName || selectedRow?.teamName}
+            />
           </>
         ) : (
           <div className="text-sm text-neutral-400 italic">

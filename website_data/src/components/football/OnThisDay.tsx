@@ -3,7 +3,12 @@
 import Image from "next/image"
 import { useEffect, useState } from "react"
 
-export default function OnThisDay({ teamId }: { teamId: string }) {
+type Props = {
+  teamId: string
+  teamName?: string
+}
+
+export default function OnThisDay({ teamId, teamName }: Props) {
   const [items, setItems] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -14,8 +19,11 @@ export default function OnThisDay({ teamId }: { teamId: string }) {
     setError(null)
 
     ;(async () => {
+      const params = new URLSearchParams({ teamId })
+      if (teamName) params.set("teamName", teamName)
+
       try {
-        const res = await fetch(`/api/football/on-this-day?teamId=${teamId}`, {
+        const res = await fetch(`/api/football/on-this-day?${params.toString()}`, {
           signal: controller.signal,
         })
 
@@ -37,7 +45,7 @@ export default function OnThisDay({ teamId }: { teamId: string }) {
     })()
 
     return () => controller.abort()
-  }, [teamId])
+  }, [teamId, teamName])
 
   return (
     <div className="rounded-xl border border-smfc-grey bg-smfc-black shadow-lg shadow-black/30 overflow-hidden">

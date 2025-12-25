@@ -19,6 +19,36 @@ type ApiFootballFixture = {
   }
 }
 
+type ApiFootballTeam = {
+  team?: {
+    id?: number
+  }
+}
+
+async function resolveTeamId(teamId: string | null, teamName: string | null) {
+  if (teamId) {
+    try {
+      const byId = await fetchApiFootball<ApiFootballTeam[]>("/teams", { id: teamId })
+      const resolved = byId.response?.[0]?.team?.id
+      if (resolved) return String(resolved)
+    } catch {
+      // fall through to search
+    }
+  }
+
+  if (teamName) {
+    try {
+      const byName = await fetchApiFootball<ApiFootballTeam[]>("/teams", { search: teamName })
+      const resolved = byName.response?.[0]?.team?.id
+      if (resolved) return String(resolved)
+    } catch {
+      // ignore
+    }
+  }
+
+  return teamId
+}
+
 function formatScore(goals: number | null | undefined) {
   return Number.isFinite(goals) ? String(goals) : "?"
 }
@@ -45,9 +75,15 @@ function buildFact(teamId: string, fixture: ApiFootballFixture) {
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url)
   const teamId = searchParams.get("teamId")
+  const teamName = searchParams.get("teamName")
 
-  if (!teamId) {
+  if (!teamId && !teamName) {
     return Response.json([], { status: 400 })
+  }
+
+  const resolvedTeamId = await resolveTeamId(teamId, teamName)
+  if (!resolvedTeamId) {
+    return Response.json([], { status: 404 })
   }
 
   const today = new Date()
@@ -62,7 +98,7 @@ export async function GET(req: Request) {
   try {
     const requests = years.map((year) =>
       fetchApiFootball<ApiFootballFixture[]>("/fixtures", {
-        team: teamId,
+        team: resolvedTeamId,
         date: `${year}-${month}-${day}`,
       }).catch(() => ({ response: [] as ApiFootballFixture[] }))
     )
@@ -70,7 +106,9 @@ export async function GET(req: Request) {
     const results = await Promise.all(requests)
     const fixtures = results.flatMap((r) => r.response ?? [])
 
-    const facts = fixtures.map((fixture) => buildFact(teamId, fixture))
+    const facts = fixtures.map((fixture) =>
+      buildFact(resolvedTeamId ?? teamId ?? "", fixture)
+    )
 
     return Response.json(facts)
   } catch (error) {

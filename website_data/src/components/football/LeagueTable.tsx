@@ -17,7 +17,7 @@ type Props = {
   leagueName: string
   rows: LeagueRow[]
   selectedTeamId?: string
-  onSelectTeam: (teamId: string) => void
+  onSelectTeam: (teamId: string, teamName: string) => void
 }
 
 export default function LeagueTable({
@@ -50,7 +50,7 @@ export default function LeagueTable({
             <button
               key={row.teamId}
               type="button"
-              onClick={() => onSelectTeam(row.teamId)}
+              onClick={() => onSelectTeam(row.teamId, row.teamName)}
               className={`
                 w-full px-4 py-4 sm:px-5
                 transition-colors duration-150 text-center

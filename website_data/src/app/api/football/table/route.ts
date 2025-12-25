@@ -1,4 +1,4 @@
-import { fetchApiFootball } from "@/lib/footballApi"
+import { fetchSportsDb } from "@/lib/sportsDbApi"
 
 type LeagueRow = {
   position: number
@@ -11,30 +11,29 @@ type LeagueRow = {
   crest: string
 }
 
-type ApiFootballStanding = {
-  rank?: number
-  team?: {
-    id?: number
-    name?: string
-    logo?: string
-  }
-  all?: {
-    win?: number
-    lose?: number
-    goals?: {
-      for?: number
-      against?: number
-    }
-  }
-  goalsDiff?: number
-  points?: number
+type SportsDbTableRow = {
+  idTeam?: string | null
+  strTeam?: string | null
+  strTeamBadge?: string | null
+  strLeague?: string | null
+  intRank?: string | null
+  intWin?: string | null
+  intLoss?: string | null
+  intGoalDifference?: string | null
+  intPoints?: string | null
 }
 
-type ApiFootballStandingsResponse = {
-  league?: {
-    name?: string
-    standings?: ApiFootballStanding[][]
+type SportsDbTableResponse = {
+  table?: SportsDbTableRow[]
+}
+
+function toNumber(value?: string | number | null) {
+  if (typeof value === "number") return value
+  if (typeof value === "string") {
+    const parsed = Number.parseInt(value, 10)
+    return Number.isNaN(parsed) ? 0 : parsed
   }
+  return 0
 }
 
 export async function GET(req: Request) {
@@ -47,31 +46,32 @@ export async function GET(req: Request) {
   }
 
   try {
-    const data = await fetchApiFootball<ApiFootballStandingsResponse[]>("/standings", {
-      league: leagueId,
-      season,
+    const data = await fetchSportsDb<SportsDbTableResponse>("/lookuptable.php", {
+      l: leagueId,
+      s: season,
     })
 
-    const league = data.response?.[0]?.league
-    const standings = league?.standings?.[0] ?? []
+    const standings = data.table ?? []
 
-    const rows: LeagueRow[] = standings.map((entry) => ({
-      position: entry.rank ?? 0,
-      teamId: String(entry.team?.id ?? ""),
-      teamName: entry.team?.name ?? "Unknown",
-      won: entry.all?.win ?? 0,
-      lost: entry.all?.lose ?? 0,
-      goalDifference: entry.goalsDiff ?? 0,
-      points: entry.points ?? 0,
-      crest: entry.team?.logo ?? "",
-    }))
+    const rows: LeagueRow[] = standings
+      .map((entry) => ({
+        position: toNumber(entry.intRank),
+        teamId: String(entry.idTeam ?? ""),
+        teamName: entry.strTeam ?? "Unknown",
+        won: toNumber(entry.intWin),
+        lost: toNumber(entry.intLoss),
+        goalDifference: toNumber(entry.intGoalDifference),
+        points: toNumber(entry.intPoints),
+        crest: entry.strTeamBadge ?? "",
+      }))
+      .filter((entry) => entry.teamId && entry.teamName)
 
     return Response.json({
       rows,
-      leagueName: league?.name ?? "",
+      leagueName: standings?.[0]?.strLeague ?? "",
     })
   } catch (error) {
-    console.error("Failed to fetch standings from API-Football", error)
+    console.error("Failed to fetch standings from TheSportsDB", error)
     return Response.json({ rows: [], leagueName: "" }, { status: 500 })
   }
 }

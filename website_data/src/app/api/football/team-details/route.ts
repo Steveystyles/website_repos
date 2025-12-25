@@ -8,6 +8,13 @@ type ApiFootballTeam = {
   }
 }
 
+type ApiFootballLeague = {
+  league?: {
+    id?: number
+    name?: string | null
+  }
+}
+
 type ApiFootballCoach = {
   name?: string | null
 }
@@ -48,18 +55,45 @@ type TeamDetails = {
   }
 }
 
-async function fetchTeamProfile(teamId: string) {
-  const data = await fetchApiFootball<ApiFootballTeam[]>("/teams", { id: teamId })
-  const team = data.response?.[0]?.team
+function normalizeSeason(season: string | null) {
+  if (!season) return null
+  const match = season.match(/\d{4}/)
+  return match ? match[0] : null
+}
+
+async function fetchTeamProfile(teamId: string | null, teamName: string | null) {
+  const query: Record<string, string> = {}
+  if (teamId) query.id = teamId
+  else if (teamName) query.search = teamName
+  else return { teamName: "Unknown team", crest: null, id: null }
+
+  let team: ApiFootballTeam["team"] | undefined
+
+  try {
+    const data = await fetchApiFootball<ApiFootballTeam[]>("/teams", query)
+    team = data.response?.[0]?.team
+  } catch {
+    // Try fallback search by name below.
+  }
+
+  if (!team && teamName) {
+    try {
+      const byName = await fetchApiFootball<ApiFootballTeam[]>("/teams", { search: teamName })
+      team = byName.response?.[0]?.team
+    } catch {
+      // ignore
+    }
+  }
 
   return {
-    teamName: team?.name ?? "Unknown team",
+    teamName: team?.name ?? teamName ?? "Unknown team",
     crest: team?.logo ?? null,
+    id: team?.id ? String(team.id) : teamId,
   }
 }
 
-async function fetchManager(teamId: string, season: string | null) {
-  if (!season) return "Unavailable"
+async function fetchManager(teamId: string | null, season: string | null) {
+  if (!teamId || !season) return "Unavailable"
 
   try {
     const data = await fetchApiFootball<ApiFootballCoach[]>("/coachs", {
@@ -74,60 +108,93 @@ async function fetchManager(teamId: string, season: string | null) {
   }
 }
 
-async function fetchNextMatch(teamId: string): Promise<TeamDetails["nextMatch"] | null> {
-  const data = await fetchApiFootball<ApiFootballFixture[]>("/fixtures", {
-    team: teamId,
-    next: 1,
-  })
+async function fetchNextMatch(teamId: string | null): Promise<TeamDetails["nextMatch"] | null> {
+  if (!teamId) return null
 
-  const fixture = data.response?.[0]
-  if (!fixture?.fixture || !fixture.teams) return null
+  try {
+    const data = await fetchApiFootball<ApiFootballFixture[]>("/fixtures", {
+      team: teamId,
+      next: 1,
+    })
 
-  const isHome = String(fixture.teams.home?.id ?? "") === teamId
-  const opponent = isHome ? fixture.teams.away?.name : fixture.teams.home?.name
-  const date = safeDate(fixture.fixture.date)?.toISOString() ?? new Date().toISOString()
+    const fixture = data.response?.[0]
+    if (!fixture?.fixture || !fixture.teams) return null
 
-  return {
-    opponent: opponent ?? "TBD",
-    date,
-    homeAway: isHome ? "H" : "A",
+    const isHome = String(fixture.teams.home?.id ?? "") === teamId
+    const opponent = isHome ? fixture.teams.away?.name : fixture.teams.home?.name
+    const date = safeDate(fixture.fixture.date)?.toISOString() ?? new Date().toISOString()
+
+    return {
+      opponent: opponent ?? "TBD",
+      date,
+      homeAway: isHome ? "H" : "A",
+    }
+  } catch {
+    return null
   }
 }
 
 async function fetchLeaguePosition(
-  leagueId: string | null,
+  teamId: string | null,
   season: string | null,
-  teamId: string
+  leagueId: string | null,
+  leagueName: string | null
 ) {
-  if (!leagueId || !season) return null
+  if (!teamId || !season) return null
 
-  const data = await fetchApiFootball<ApiFootballStandingsResponse[]>("/standings", {
-    league: leagueId,
-    season,
-  })
+  let targetLeagueId = leagueId
 
-  const standings = data.response?.[0]?.league?.standings?.[0] ?? []
-  const row = standings.find((entry) => String(entry.team?.id ?? "") === teamId)
+  if (leagueName) {
+    try {
+      const leagueSearch = await fetchApiFootball<ApiFootballLeague[]>("/leagues", {
+        name: leagueName,
+        current: true,
+      })
+      targetLeagueId = leagueSearch.response?.[0]?.league?.id
+        ? String(leagueSearch.response[0].league?.id)
+        : null
+    } catch {
+      targetLeagueId = targetLeagueId ?? null
+    }
+  }
 
-  return row?.rank ?? null
+  if (!targetLeagueId) return null
+
+  try {
+    const data = await fetchApiFootball<ApiFootballStandingsResponse[]>("/standings", {
+      league: targetLeagueId,
+      season,
+    })
+
+    const standings = data.response?.[0]?.league?.standings?.[0] ?? []
+    const row = standings.find((entry) => String(entry.team?.id ?? "") === teamId)
+
+    return row?.rank ?? null
+  } catch {
+    return null
+  }
 }
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url)
   const teamId = searchParams.get("teamId")
   const leagueId = searchParams.get("leagueId")
+  const leagueName = searchParams.get("leagueName")
   const season = searchParams.get("season")
+  const teamName = searchParams.get("teamName")
 
-  if (!teamId) {
-    return Response.json({ error: "teamId is required" }, { status: 400 })
+  if (!teamId && !teamName) {
+    return Response.json({ error: "teamId or teamName is required" }, { status: 400 })
   }
 
   try {
-    const [profile, manager, nextMatch, leaguePosition] = await Promise.all([
-      fetchTeamProfile(teamId),
-      fetchManager(teamId, season),
-      fetchNextMatch(teamId),
-      fetchLeaguePosition(leagueId, season, teamId),
+    const normalizedSeason = normalizeSeason(season)
+    const profile = await fetchTeamProfile(teamId, teamName)
+
+    const [manager, nextMatch, leaguePosition] = await Promise.all([
+      fetchManager(profile.id, normalizedSeason),
+      fetchNextMatch(profile.id),
+      fetchLeaguePosition(profile.id, normalizedSeason, leagueId, leagueName),
     ])
 
     const response: TeamDetails = {

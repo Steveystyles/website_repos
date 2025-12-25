@@ -17,7 +17,9 @@ type TeamDetails = {
 
 type Props = {
   teamId: string
+  teamName?: string
   leagueId: string
+  leagueName?: string
   season: string
   fallbackTeamName?: string
   fallbackPosition?: number
@@ -25,7 +27,9 @@ type Props = {
 
 export default function TeamSnapshot({
   teamId,
+  teamName,
   leagueId,
+  leagueName,
   season,
   fallbackPosition,
   fallbackTeamName,
@@ -36,11 +40,14 @@ export default function TeamSnapshot({
   const [showCrest, setShowCrest] = useState(true)
 
   const search = useMemo(() => {
-    const params = new URLSearchParams({ teamId })
+    const params = new URLSearchParams()
+    if (teamId) params.set("teamId", teamId)
+    if (teamName) params.set("teamName", teamName)
     if (leagueId) params.set("leagueId", leagueId)
+    if (leagueName) params.set("leagueName", leagueName)
     if (season) params.set("season", season)
     return params.toString()
-  }, [leagueId, season, teamId])
+  }, [leagueId, leagueName, season, teamId, teamName])
 
   useEffect(() => {
     // 🔥 Clear stale data immediately when team changes
@@ -126,7 +133,7 @@ export default function TeamSnapshot({
         )}
 
         <h3 className="text-lg font-bold tracking-wide text-smfc-white">
-          {data.teamName || fallbackTeamName}
+          {data.teamName || fallbackTeamName || teamName}
         </h3>
       </div>
       {/* Body */}

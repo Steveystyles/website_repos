@@ -1,52 +1,35 @@
-import { fetchApiFootball } from "@/lib/footballApi"
+import { fetchSportsDb } from "@/lib/sportsDbApi"
 
-type ApiFootballLeague = {
-  league: {
-    id: number
-    name: string
-    type: string
-  }
-  seasons?: {
-    year?: number
-    current?: boolean
-  }[]
+type SportsDbLeague = {
+  idLeague?: string | null
+  strLeague?: string | null
+  strSport?: string | null
+  strCurrentSeason?: string | null
+}
+
+type SportsDbLeaguesResponse = {
+  leagues?: SportsDbLeague[]
 }
 
 export async function GET() {
   try {
-    const data = await fetchApiFootball<ApiFootballLeague[]>("/leagues", {
-      current: true,
+    const data = await fetchSportsDb<SportsDbLeaguesResponse>("/search_all_leagues.php", {
+      s: "Soccer",
     })
 
-    const leagues = (data.response ?? [])
-      // Only keep league competitions that have an active season.
-      .filter((entry) => entry.league?.type?.toLowerCase() === "league")
-      .map((entry) => {
-        const currentSeason =
-          entry.seasons?.find((s) => s.current) ??
-          entry.seasons?.sort((a, b) => (b.year ?? 0) - (a.year ?? 0))[0]
-
-        return {
-          id: String(entry.league.id),
-          name: entry.league.name,
-          season: currentSeason?.year ? String(currentSeason.year) : String(new Date().getFullYear()),
-        }
-      })
-      // Deduplicate (API can return multiple records per league).
-      .reduce<{ seen: Set<string>; leagues: { id: string; name: string; season: string }[] }>(
-        (acc, league) => {
-          if (!acc.seen.has(league.id)) {
-            acc.seen.add(league.id)
-            acc.leagues.push(league)
-          }
-          return acc
-        },
-        { seen: new Set(), leagues: [] }
-      ).leagues
+    const leagues = (data.leagues ?? [])
+      .filter((league) => league.strSport?.toLowerCase() === "soccer")
+      .map((league) => ({
+        id: String(league.idLeague ?? ""),
+        name: league.strLeague?.trim() || "Unknown league",
+        season: league.strCurrentSeason?.trim() || String(new Date().getFullYear()),
+      }))
+      .filter((league) => league.id && league.name)
+      .sort((a, b) => a.name.localeCompare(b.name))
 
     return Response.json(leagues)
   } catch (error) {
-    console.error("Failed to fetch leagues from API-Football", error)
+    console.error("Failed to fetch leagues from TheSportsDB", error)
     return Response.json([], { status: 500 })
   }
 }
