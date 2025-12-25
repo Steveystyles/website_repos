@@ -1,17 +1,39 @@
-type SportsDbTeam = {
-  idTeam?: string | number
-  strTeam?: string | null
-  strManager?: string | null
-  strTeamBadge?: string | null
+import { fetchApiFootball, safeDate } from "@/lib/footballApi"
+
+type ApiFootballTeam = {
+  team?: {
+    id?: number
+    name?: string
+    logo?: string | null
+  }
 }
 
-type SportsDbEvent = {
-  idHomeTeam?: string | number
-  idAwayTeam?: string | number
-  strHomeTeam?: string | null
-  strAwayTeam?: string | null
-  dateEvent?: string | null
-  strTimestamp?: string | null
+type ApiFootballCoach = {
+  name?: string | null
+}
+
+type ApiFootballFixture = {
+  fixture?: {
+    date?: string | null
+    venue?: { name?: string | null }
+  }
+  teams?: {
+    home?: { id?: number; name?: string | null }
+    away?: { id?: number; name?: string | null }
+  }
+}
+
+type ApiFootballStanding = {
+  rank?: number
+  team?: {
+    id?: number
+  }
+}
+
+type ApiFootballStandingsResponse = {
+  league?: {
+    standings?: ApiFootballStanding[][]
+  }
 }
 
 type TeamDetails = {
@@ -26,84 +48,68 @@ type TeamDetails = {
   }
 }
 
-function normalizeDate(raw?: string | null) {
-  if (!raw) return null
-  const asDate = new Date(raw)
-  return Number.isNaN(asDate.getTime()) ? null : asDate.toISOString()
-}
-
-async function fetchTeamProfile(
-  apiKey: string,
-  teamId: string
-): Promise<{ teamName: string; manager: string; crest: string | null } | null> {
-  const res = await fetch(
-    `https://www.thesportsdb.com/api/v1/json/${apiKey}/lookupteam.php?id=${teamId}`,
-    { cache: "no-store" }
-  )
-
-  if (!res.ok) return null
-
-  const json = (await res.json()) as { teams?: SportsDbTeam[] }
-  const team = (json.teams ?? [])[0]
-  if (!team) return null
+async function fetchTeamProfile(teamId: string) {
+  const data = await fetchApiFootball<ApiFootballTeam[]>("/teams", { id: teamId })
+  const team = data.response?.[0]?.team
 
   return {
-    teamName: team.strTeam ?? "Unknown team",
-    manager: team.strManager ?? "Unknown manager",
-    crest: team.strTeamBadge?.replace(/^http:\/\//, "https://") ?? null,
+    teamName: team?.name ?? "Unknown team",
+    crest: team?.logo ?? null,
   }
 }
 
-async function fetchNextMatch(
-  apiKey: string,
-  teamId: string
-): Promise<TeamDetails["nextMatch"] | null> {
-  const res = await fetch(
-    `https://www.thesportsdb.com/api/v1/json/${apiKey}/eventsnext.php?id=${teamId}`,
-    { cache: "no-store" }
-  )
+async function fetchManager(teamId: string, season: string | null) {
+  if (!season) return "Unavailable"
 
-  if (!res.ok) return null
+  try {
+    const data = await fetchApiFootball<ApiFootballCoach[]>("/coachs", {
+      team: teamId,
+      season,
+    })
 
-  const json = (await res.json()) as { events?: SportsDbEvent[] }
-  const event = (json.events ?? [])[0]
-  if (!event) return null
+    const coach = data.response?.find((c) => c?.name)?.name
+    return coach ?? "Unavailable"
+  } catch {
+    return "Unavailable"
+  }
+}
 
-  const isHome = String(event.idHomeTeam ?? "") === teamId
-  const opponent = isHome ? event.strAwayTeam : event.strHomeTeam
-  const date =
-    normalizeDate(event.strTimestamp) ?? normalizeDate(event.dateEvent) ?? new Date().toISOString()
+async function fetchNextMatch(teamId: string): Promise<TeamDetails["nextMatch"] | null> {
+  const data = await fetchApiFootball<ApiFootballFixture[]>("/fixtures", {
+    team: teamId,
+    next: 1,
+  })
 
-  const homeAway: TeamDetails["nextMatch"]["homeAway"] = isHome ? "H" : "A"
+  const fixture = data.response?.[0]
+  if (!fixture?.fixture || !fixture.teams) return null
+
+  const isHome = String(fixture.teams.home?.id ?? "") === teamId
+  const opponent = isHome ? fixture.teams.away?.name : fixture.teams.home?.name
+  const date = safeDate(fixture.fixture.date)?.toISOString() ?? new Date().toISOString()
 
   return {
     opponent: opponent ?? "TBD",
     date,
-    homeAway,
+    homeAway: isHome ? "H" : "A",
   }
 }
 
 async function fetchLeaguePosition(
-  apiKey: string,
   leagueId: string | null,
   season: string | null,
   teamId: string
 ) {
   if (!leagueId || !season) return null
 
-  const res = await fetch(
-    `https://www.thesportsdb.com/api/v1/json/${apiKey}/lookuptable.php?l=${leagueId}&s=${season}`,
-    { cache: "no-store" }
-  )
+  const data = await fetchApiFootball<ApiFootballStandingsResponse[]>("/standings", {
+    league: leagueId,
+    season,
+  })
 
-  if (!res.ok) return null
+  const standings = data.response?.[0]?.league?.standings?.[0] ?? []
+  const row = standings.find((entry) => String(entry.team?.id ?? "") === teamId)
 
-  const json = (await res.json()) as { table?: { idTeam?: string | number; intRank?: string | number }[] }
-  const row = (json.table ?? []).find((entry) => String(entry.idTeam ?? "") === teamId)
-  if (!row) return null
-
-  const parsed = Number(row.intRank)
-  return Number.isFinite(parsed) ? parsed : null
+  return row?.rank ?? null
 }
 
 export async function GET(req: Request) {
@@ -116,47 +122,43 @@ export async function GET(req: Request) {
     return Response.json({ error: "teamId is required" }, { status: 400 })
   }
 
-  const envKey = process.env.THESPORTSDB_API_KEY?.trim()
-  const keys = Array.from(new Set(["123", envKey, "3"].filter(Boolean))) as string[]
+  try {
+    const [profile, manager, nextMatch, leaguePosition] = await Promise.all([
+      fetchTeamProfile(teamId),
+      fetchManager(teamId, season),
+      fetchNextMatch(teamId),
+      fetchLeaguePosition(leagueId, season, teamId),
+    ])
 
-  let profile:
-    | {
-        teamName: string
-        manager: string
-        crest: string | null
-      }
-    | null = null
-  let nextMatch: TeamDetails["nextMatch"] | null = null
-  let leaguePosition: number | null = null
-
-  for (const key of keys) {
-    if (!profile) {
-      profile = await fetchTeamProfile(key, teamId)
-    }
-    if (!nextMatch) {
-      nextMatch = await fetchNextMatch(key, teamId)
-    }
-    if (leaguePosition === null) {
-      leaguePosition = await fetchLeaguePosition(key, leagueId, season, teamId)
+    const response: TeamDetails = {
+      teamName: profile.teamName,
+      manager,
+      crest: profile.crest,
+      leaguePosition: leaguePosition ?? 0,
+      nextMatch:
+        nextMatch ?? {
+          opponent: "TBD",
+          date: new Date().toISOString(),
+          homeAway: "H",
+        },
     }
 
-    if (profile && nextMatch && leaguePosition !== null) {
-      break
-    }
-  }
-
-  const response: TeamDetails = {
-    teamName: profile?.teamName ?? "Unknown team",
-    manager: profile?.manager ?? "Unavailable",
-    crest: profile?.crest,
-    leaguePosition: leaguePosition ?? 0,
-    nextMatch:
-      nextMatch ?? {
-        opponent: "TBD",
-        date: new Date().toISOString(),
-        homeAway: "H",
+    return Response.json(response)
+  } catch (error) {
+    console.error("Failed to fetch team details from API-Football", error)
+    return Response.json(
+      {
+        teamName: "Unknown team",
+        manager: "Unavailable",
+        crest: null,
+        leaguePosition: 0,
+        nextMatch: {
+          opponent: "TBD",
+          date: new Date().toISOString(),
+          homeAway: "H",
+        },
       },
+      { status: 500 }
+    )
   }
-
-  return Response.json(response)
 }
