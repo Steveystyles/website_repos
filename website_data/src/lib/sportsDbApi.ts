@@ -1,7 +1,19 @@
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+const DEFAULT_SPORTS_DB_KEY = "123"
+const SPORTS_DB_BASE_URL = "https://www.thesportsdb.com/api/v2/
+json"
+=======
+>>>>>>> dev
 import fs from "node:fs"
 
 const DEFAULT_SPORTS_DB_KEY = "1"
 const SPORTS_DB_BASE_URL = "https://www.thesportsdb.com/api/v2/json"
+<<<<<<< HEAD
+=======
+>>>>>>> f70c93a (Rebuild football explorer with TheSportsDB v2)
+>>>>>>> dev
 
 type QueryValue = string | number | undefined | null
 
