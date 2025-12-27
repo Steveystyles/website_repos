@@ -2,7 +2,7 @@
 
 import FootballExplorer from "@/components/football/FootballExplorer"
 
-export default function OutputOne() {
+export default function Footballexploer() {
   return (
     <div className="h-full overflow-y-auto space-y-4">
       <FootballExplorer />

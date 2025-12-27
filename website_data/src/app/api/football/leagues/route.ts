@@ -18,12 +18,12 @@ type League = {
 }
 
 const FALLBACK_LEAGUES: League[] = [
-  { id: "4399", name: "Scottish Premiership", season: "2023-2024" },
-  { id: "4328", name: "English Premier League", season: "2023-2024" },
-  { id: "4331", name: "German Bundesliga", season: "2023-2024" },
-  { id: "4332", name: "Italian Serie A", season: "2023-2024" },
-  { id: "4334", name: "French Ligue 1", season: "2023-2024" },
-  { id: "4335", name: "Spanish La Liga", season: "2023-2024" },
+  { id: "4399", name: "Scottish Premiership", season: "2024-2025" },
+  { id: "4328", name: "English Premier League", season: "2024-2025" },
+  { id: "4331", name: "German Bundesliga", season: "2024-2025" },
+  { id: "4332", name: "Italian Serie A", season: "2024-2025" },
+  { id: "4334", name: "French Ligue 1", season: "2024-2025" },
+  { id: "4335", name: "Spanish La Liga", season: "2024-2025" },
 ]
 
 function normalizeLeagues(data: SportsDbLeaguesResponse): League[] {
@@ -40,7 +40,7 @@ function normalizeLeagues(data: SportsDbLeaguesResponse): League[] {
 
 export async function GET() {
   try {
-    const data = await fetchSportsDb<SportsDbLeaguesResponse>("/search_all_leagues.php", {
+    const data = await fetchSportsDb<SportsDbLeaguesResponse>("/all_leagues.php", {
       s: "Soccer",
     })
 
