@@ -1,11 +1,50 @@
+<<<<<<< HEAD
 const DEFAULT_SPORTS_DB_KEY = "123"
 const SPORTS_DB_BASE_URL = "https://www.thesportsdb.com/api/v2/
 json"
+=======
+import fs from "node:fs"
+
+const DEFAULT_SPORTS_DB_KEY = "1"
+const SPORTS_DB_BASE_URL = "https://www.thesportsdb.com/api/v2/json"
+>>>>>>> f70c93a (Rebuild football explorer with TheSportsDB v2)
 
 type QueryValue = string | number | undefined | null
 
+let cachedKey: string | null = null
+
+function readSecretKey(): string | null {
+  const secretPath = process.env.SPORTSDB_API_KEY_FILE ?? "/run/secrets/SPORTSDB_API_KEY"
+
+  try {
+    if (fs.existsSync(secretPath)) {
+      return fs.readFileSync(secretPath, "utf-8").trim()
+    }
+  } catch (error) {
+    console.warn("Unable to read SportsDB secret file", error)
+  }
+
+  return null
+}
+
 function getSportsDbKey() {
-  return process.env.SPORTSDB_API_KEY?.trim() || DEFAULT_SPORTS_DB_KEY
+  if (cachedKey) return cachedKey
+
+  const envKey = process.env.SPORTSDB_API_KEY?.trim()
+  if (envKey) {
+    cachedKey = envKey
+    return cachedKey
+  }
+
+  const secretKey = readSecretKey()
+  if (secretKey) {
+    cachedKey = secretKey
+    return cachedKey
+  }
+
+  console.warn("SPORTSDB_API_KEY missing; using default demo key")
+  cachedKey = DEFAULT_SPORTS_DB_KEY
+  return cachedKey
 }
 
 export async function fetchSportsDb<T>(

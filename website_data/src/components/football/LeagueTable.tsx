@@ -6,18 +6,22 @@ type LeagueRow = {
   position: number
   teamId: string
   teamName: string
+  played: number
   won: number
+  drawn: number
   lost: number
+  goalsFor: number
+  goalsAgainst: number
   goalDifference: number
   points: number
-  crest: string // ✅ ADD THIS
+  crest?: string | null
 }
 
 type Props = {
   leagueName: string
   rows: LeagueRow[]
   selectedTeamId?: string
-  onSelectTeam: (teamId: string, teamName: string) => void
+  onSelectTeam: (teamId: string) => void
 }
 
 export default function LeagueTable({
@@ -50,7 +54,7 @@ export default function LeagueTable({
             <button
               key={row.teamId}
               type="button"
-              onClick={() => onSelectTeam(row.teamId, row.teamName)}
+              onClick={() => onSelectTeam(row.teamId)}
               className={`
                 w-full px-4 py-4 sm:px-5
                 transition-colors duration-150 text-center
@@ -77,21 +81,27 @@ export default function LeagueTable({
                   />
 
                   <div className="min-w-0 text-left sm:text-center">
-                    <p className="truncate text-base font-semibold text-smfc-white">
+                    <p className="truncate text-base font-semibold text-smfc-white flex items-center gap-2">
                       {row.teamName}
+                      <span className="text-[10px] rounded-full bg-smfc-red/20 px-2 py-[2px] text-smfc-red">
+                        {row.points} pts
+                      </span>
                     </p>
                   </div>
                 </div>
 
-                <div className="hidden min-w-[240px] shrink-0 grid grid-cols-4 gap-3 text-center sm:grid">
+                <div className="hidden min-w-[320px] shrink-0 grid grid-cols-6 gap-3 text-center sm:grid">
                   {[
+                    { label: "P", value: row.played },
                     { label: "W", value: row.won },
+                    { label: "D", value: row.drawn },
                     { label: "L", value: row.lost },
+                    { label: "GF", value: row.goalsFor },
+                    { label: "GA", value: row.goalsAgainst },
                     {
                       label: "GD",
                       value: `${row.goalDifference > 0 ? "+" : ""}${row.goalDifference}`,
                     },
-                    { label: "Pts", value: row.points },
                   ].map((stat) => (
                     <div key={stat.label} className="rounded-lg bg-smfc-black/70 px-3 py-2">
                       <p className="text-[11px] font-medium uppercase tracking-wide text-neutral-400">
@@ -107,13 +117,15 @@ export default function LeagueTable({
 
               <div className="mt-3 grid grid-cols-2 gap-2 sm:hidden">
                 {[
+                  { label: "P", value: row.played },
                   { label: "Pts", value: row.points },
+                  { label: "W", value: row.won },
+                  { label: "D", value: row.drawn },
+                  { label: "L", value: row.lost },
                   {
                     label: "GD",
                     value: `${row.goalDifference > 0 ? "+" : ""}${row.goalDifference}`,
                   },
-                  { label: "W", value: row.won },
-                  { label: "L", value: row.lost },
                 ].map((stat) => (
                   <div
                     key={stat.label}

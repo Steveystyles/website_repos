@@ -4,8 +4,12 @@ type LeagueRow = {
   position: number
   teamId: string
   teamName: string
+  played: number
   won: number
+  drawn: number
   lost: number
+  goalsFor: number
+  goalsAgainst: number
   goalDifference: number
   points: number
   crest: string
@@ -17,8 +21,12 @@ type SportsDbTableRow = {
   strTeamBadge?: string | null
   strLeague?: string | null
   intRank?: string | null
+  intPlayed?: string | null
   intWin?: string | null
+  intDraw?: string | null
   intLoss?: string | null
+  intGoalsFor?: string | null
+  intGoalsAgainst?: string | null
   intGoalDifference?: string | null
   intPoints?: string | null
 }
@@ -58,8 +66,12 @@ export async function GET(req: Request) {
         position: toNumber(entry.intRank),
         teamId: String(entry.idTeam ?? ""),
         teamName: entry.strTeam ?? "Unknown",
+        played: toNumber(entry.intPlayed),
         won: toNumber(entry.intWin),
+        drawn: toNumber(entry.intDraw),
         lost: toNumber(entry.intLoss),
+        goalsFor: toNumber(entry.intGoalsFor),
+        goalsAgainst: toNumber(entry.intGoalsAgainst),
         goalDifference: toNumber(entry.intGoalDifference),
         points: toNumber(entry.intPoints),
         crest: entry.strTeamBadge ?? "",
